@@ -1,0 +1,13 @@
+case_id,symbol,direction,leverage,stop_out_percent,balance,equity,spread_points,commission_per_lot,swap_per_lot_per_day,holding_days,hedge_mode,initial_lot,multiplier,distance,fixed_distance,levels,rounding_mode,current_price,expected_total_lots,expected_avg_entry,expected_basket_be,expected_rebind_distance,expected_survivable_levels,expected_stop_out_price,expected_max_dd_percent,expected_constraint_violated_at_level,mt5_screenshot_filename,notes
+XAUUSD_001,XAUUSD,buy,500,20,10000,10000,30,0,0,0,hedgingFull,0.01,1.5,fixed,10,10,round,3300.00,,,,,,,,,,,,
+XAUUSD_002,XAUUSD,sell,500,20,5000,5000,30,0,0,0,hedgingFull,0.01,2.0,fixed,15,15,round,3300.00,,,,,,,,,,,,
+XAUUSD_003,XAUUSD,buy,500,20,10000,10000,30,0,0,0,hedgingFull,0.05,1.0,fixed,20,8,round,3300.00,,,,,,,,,,,,
+XAUUSD_004,XAUUSD,buy,500,20,10000,10000,30,7.0,-2.5,7,hedgingFull,0.02,1.5,fixed,10,10,round,3300.00,,,,,,,,,,,,
+XAUUSD_005,XAUUSD,buy,500,15,2000,2000,30,0,0,0,hedgingFull,0.01,1.5,fixed,10,10,round,3300.00,,,,,,,,,,,,
+XAUUSD_006,XAUUSD,buy,500,20,10000,10000,30,0,0,0,hedgingFull,0.01,1.5,fixed,10,10,floor,3300.00,,,,,,,,,,,,
+XAUUSD_007,XAUUSD,sell,500,20,10000,10000,30,0,0,0,hedgingFull,0.01,1.5,fixed,10,10,ceiling,3300.00,,,,,,,,,,,,
+XAUUSD_008,XAUUSD,buy,500,20,10000,10000,30,0,0,0,netting,0.01,1.5,fixed,10,10,round,3300.00,,,,,,,,,,,,
+EURUSD_001,EURUSD,sell,1000,20,5000,5000,15,3.5,-0.5,7,hedgingFull,0.05,1.3,fixed,0.0050,8,round,1.08500,,,,,,,,,,,,
+EURUSD_002,EURUSD,buy,500,20,10000,10000,15,0,0,0,hedgingFull,0.10,1.0,fixed,0.0020,5,round,1.08500,,,,,,,,,,,,
+EURUSD_003,EURUSD,buy,500,20,3000,3000,15,0,0,0,hedgingFull,0.01,2.0,fixed,0.0030,20,round,1.08500,,,,,,,,,,,,
+EURUSD_004,EURUSD,sell,500,20,5000,5000,15,0,0,0,hedgingFull,0.05,1.5,fixed,0.0030,10,round,1.08500,,,,,,,,,,,,

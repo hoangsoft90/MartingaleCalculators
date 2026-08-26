@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Network Security Configuration
+  Allows HTTP traffic for all domains (development & production).
+  For production, consider restricting to specific domains.
+-->
+<network-security-config>
+    <!-- Allow cleartext (HTTP) traffic for all domains -->
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+
+    <!-- Optional: domain-specific rules -->
+    <!--
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">10.0.2.2</domain>
+        <domain includeSubdomains="true">localhost</domain>
+        <domain includeSubdomains="true">10.0.3.2</domain>
+    </domain-config>
+    -->
+</network-security-config>

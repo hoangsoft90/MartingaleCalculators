@@ -1,0 +1,599 @@
+{
+  "description": "Golden test cases for Grid Survival Engine. Status: PLACEHOLDER — cần thay bằng số liệu MT5 thật khi có.",
+  "status": "PLACEHOLDER — cần thay bằng số liệu MT5 thật",
+  "cases": [
+    {
+      "id": "XAUUSD_001",
+      "description": "XAUUSD Buy Grid — Conservative (multiplier 1.5, 10 levels)",
+      "input": {
+        "account": {
+          "balance": 10000,
+          "equity": 10000,
+          "currency": "USD",
+          "leverage": 500,
+          "stopOutPercent": 20
+        },
+        "instrument": {
+          "symbol": "XAUUSD",
+          "contractSize": 100,
+          "tickSize": 0.01,
+          "tickValuePerLot": 1.0,
+          "digits": 2,
+          "lotMin": 0.01,
+          "lotMax": 100,
+          "lotStep": 0.01
+        },
+        "execution": {
+          "spreadPoints": 30,
+          "commissionPerLot": 0,
+          "swapPerLotPerDay": 0,
+          "holdingDays": 0,
+          "hedgeMode": "hedgingFull"
+        },
+        "strategy": {
+          "direction": "buy",
+          "initialLot": 0.01,
+          "multiplier": 1.5,
+          "distanceMode": "fixed",
+          "fixedDistance": 10,
+          "levels": 10,
+          "roundingMode": "round"
+        },
+        "currentPrice": 3300.00
+      },
+      "expected": {
+        "totalExposureLots": "PLACEHOLDER",
+        "averageEntryPrice": "PLACEHOLDER",
+        "basketBreakevenPrice": "PLACEHOLDER",
+        "rebindDistanceToBreakeven": "PLACEHOLDER",
+        "survivableLevels": "PLACEHOLDER",
+        "estimatedStopOutPrice": "PLACEHOLDER",
+        "maxDrawdownPercent": "PLACEHOLDER"
+      }
+    },
+    {
+      "id": "XAUUSD_002",
+      "description": "XAUUSD Sell Grid — Aggressive (multiplier 2.0, 15 levels)",
+      "input": {
+        "account": {
+          "balance": 5000,
+          "equity": 5000,
+          "currency": "USD",
+          "leverage": 500,
+          "stopOutPercent": 20
+        },
+        "instrument": {
+          "symbol": "XAUUSD",
+          "contractSize": 100,
+          "tickSize": 0.01,
+          "tickValuePerLot": 1.0,
+          "digits": 2,
+          "lotMin": 0.01,
+          "lotMax": 100,
+          "lotStep": 0.01
+        },
+        "execution": {
+          "spreadPoints": 30,
+          "commissionPerLot": 0,
+          "swapPerLotPerDay": 0,
+          "holdingDays": 0,
+          "hedgeMode": "hedgingFull"
+        },
+        "strategy": {
+          "direction": "sell",
+          "initialLot": 0.01,
+          "multiplier": 2.0,
+          "distanceMode": "fixed",
+          "fixedDistance": 15,
+          "levels": 15,
+          "roundingMode": "round"
+        },
+        "currentPrice": 3300.00
+      },
+      "expected": {
+        "totalExposureLots": "PLACEHOLDER",
+        "averageEntryPrice": "PLACEHOLDER",
+        "basketBreakevenPrice": "PLACEHOLDER",
+        "rebindDistanceToBreakeven": "PLACEHOLDER",
+        "survivableLevels": "PLACEHOLDER",
+        "estimatedStopOutPrice": "PLACEHOLDER",
+        "maxDrawdownPercent": "PLACEHOLDER"
+      }
+    },
+    {
+      "id": "XAUUSD_003",
+      "description": "XAUUSD Buy Grid — Flat grid (multiplier 1.0, no martingale)",
+      "input": {
+        "account": {
+          "balance": 10000,
+          "equity": 10000,
+          "currency": "USD",
+          "leverage": 500,
+          "stopOutPercent": 20
+        },
+        "instrument": {
+          "symbol": "XAUUSD",
+          "contractSize": 100,
+          "tickSize": 0.01,
+          "tickValuePerLot": 1.0,
+          "digits": 2,
+          "lotMin": 0.01,
+          "lotMax": 100,
+          "lotStep": 0.01
+        },
+        "execution": {
+          "spreadPoints": 30,
+          "commissionPerLot": 0,
+          "swapPerLotPerDay": 0,
+          "holdingDays": 0,
+          "hedgeMode": "hedgingFull"
+        },
+        "strategy": {
+          "direction": "buy",
+          "initialLot": 0.05,
+          "multiplier": 1.0,
+          "distanceMode": "fixed",
+          "fixedDistance": 20,
+          "levels": 8,
+          "roundingMode": "round"
+        },
+        "currentPrice": 3300.00
+      },
+      "expected": {
+        "totalExposureLots": "PLACEHOLDER",
+        "averageEntryPrice": "PLACEHOLDER",
+        "basketBreakevenPrice": "PLACEHOLDER",
+        "rebindDistanceToBreakeven": "PLACEHOLDER",
+        "survivableLevels": "PLACEHOLDER",
+        "estimatedStopOutPrice": "PLACEHOLDER",
+        "maxDrawdownPercent": "PLACEHOLDER"
+      }
+    },
+    {
+      "id": "XAUUSD_004",
+      "description": "XAUUSD Buy Grid — With commission + swap (holding 7 days)",
+      "input": {
+        "account": {
+          "balance": 10000,
+          "equity": 10000,
+          "currency": "USD",
+          "leverage": 500,
+          "stopOutPercent": 20
+        },
+        "instrument": {
+          "symbol": "XAUUSD",
+          "contractSize": 100,
+          "tickSize": 0.01,
+          "tickValuePerLot": 1.0,
+          "digits": 2,
+          "lotMin": 0.01,
+          "lotMax": 100,
+          "lotStep": 0.01
+        },
+        "execution": {
+          "spreadPoints": 30,
+          "commissionPerLot": 7.0,
+          "swapPerLotPerDay": -2.5,
+          "holdingDays": 7,
+          "hedgeMode": "hedgingFull"
+        },
+        "strategy": {
+          "direction": "buy",
+          "initialLot": 0.02,
+          "multiplier": 1.5,
+          "distanceMode": "fixed",
+          "fixedDistance": 10,
+          "levels": 10,
+          "roundingMode": "round"
+        },
+        "currentPrice": 3300.00
+      },
+      "expected": {
+        "totalExposureLots": "PLACEHOLDER",
+        "averageEntryPrice": "PLACEHOLDER",
+        "basketBreakevenPrice": "PLACEHOLDER",
+        "rebindDistanceToBreakeven": "PLACEHOLDER",
+        "survivableLevels": "PLACEHOLDER",
+        "estimatedStopOutPrice": "PLACEHOLDER",
+        "maxDrawdownPercent": "PLACEHOLDER"
+      }
+    },
+    {
+      "id": "XAUUSD_005",
+      "description": "XAUUSD Buy Grid — Small account, tight stop-out (15%)",
+      "input": {
+        "account": {
+          "balance": 2000,
+          "equity": 2000,
+          "currency": "USD",
+          "leverage": 500,
+          "stopOutPercent": 15
+        },
+        "instrument": {
+          "symbol": "XAUUSD",
+          "contractSize": 100,
+          "tickSize": 0.01,
+          "tickValuePerLot": 1.0,
+          "digits": 2,
+          "lotMin": 0.01,
+          "lotMax": 100,
+          "lotStep": 0.01
+        },
+        "execution": {
+          "spreadPoints": 30,
+          "commissionPerLot": 0,
+          "swapPerLotPerDay": 0,
+          "holdingDays": 0,
+          "hedgeMode": "hedgingFull"
+        },
+        "strategy": {
+          "direction": "buy",
+          "initialLot": 0.01,
+          "multiplier": 1.5,
+          "distanceMode": "fixed",
+          "fixedDistance": 10,
+          "levels": 10,
+          "roundingMode": "round"
+        },
+        "currentPrice": 3300.00
+      },
+      "expected": {
+        "totalExposureLots": "PLACEHOLDER",
+        "averageEntryPrice": "PLACEHOLDER",
+        "basketBreakevenPrice": "PLACEHOLDER",
+        "rebindDistanceToBreakeven": "PLACEHOLDER",
+        "survivableLevels": "PLACEHOLDER",
+        "estimatedStopOutPrice": "PLACEHOLDER",
+        "maxDrawdownPercent": "PLACEHOLDER"
+      }
+    },
+    {
+      "id": "EURUSD_001",
+      "description": "EURUSD Sell Grid — With commission + swap, 1000x leverage",
+      "input": {
+        "account": {
+          "balance": 5000,
+          "equity": 5000,
+          "currency": "USD",
+          "leverage": 1000,
+          "stopOutPercent": 20
+        },
+        "instrument": {
+          "symbol": "EURUSD",
+          "contractSize": 100000,
+          "tickSize": 0.0001,
+          "tickValuePerLot": 10.0,
+          "digits": 5,
+          "lotMin": 0.01,
+          "lotMax": 100,
+          "lotStep": 0.01
+        },
+        "execution": {
+          "spreadPoints": 15,
+          "commissionPerLot": 3.5,
+          "swapPerLotPerDay": -0.5,
+          "holdingDays": 7,
+          "hedgeMode": "hedgingFull"
+        },
+        "strategy": {
+          "direction": "sell",
+          "initialLot": 0.05,
+          "multiplier": 1.3,
+          "distanceMode": "fixed",
+          "fixedDistance": 0.0050,
+          "levels": 8,
+          "roundingMode": "round"
+        },
+        "currentPrice": 1.08500
+      },
+      "expected": {
+        "totalExposureLots": "PLACEHOLDER",
+        "averageEntryPrice": "PLACEHOLDER",
+        "basketBreakevenPrice": "PLACEHOLDER",
+        "rebindDistanceToBreakeven": "PLACEHOLDER",
+        "survivableLevels": "PLACEHOLDER",
+        "estimatedStopOutPrice": "PLACEHOLDER",
+        "maxDrawdownPercent": "PLACEHOLDER"
+      }
+    },
+    {
+      "id": "EURUSD_002",
+      "description": "EURUSD Buy Grid — Flat grid (multiplier 1.0, 5 levels)",
+      "input": {
+        "account": {
+          "balance": 10000,
+          "equity": 10000,
+          "currency": "USD",
+          "leverage": 500,
+          "stopOutPercent": 20
+        },
+        "instrument": {
+          "symbol": "EURUSD",
+          "contractSize": 100000,
+          "tickSize": 0.0001,
+          "tickValuePerLot": 10.0,
+          "digits": 5,
+          "lotMin": 0.01,
+          "lotMax": 100,
+          "lotStep": 0.01
+        },
+        "execution": {
+          "spreadPoints": 15,
+          "commissionPerLot": 0,
+          "swapPerLotPerDay": 0,
+          "holdingDays": 0,
+          "hedgeMode": "hedgingFull"
+        },
+        "strategy": {
+          "direction": "buy",
+          "initialLot": 0.10,
+          "multiplier": 1.0,
+          "distanceMode": "fixed",
+          "fixedDistance": 0.0020,
+          "levels": 5,
+          "roundingMode": "round"
+        },
+        "currentPrice": 1.08500
+      },
+      "expected": {
+        "totalExposureLots": "PLACEHOLDER",
+        "averageEntryPrice": "PLACEHOLDER",
+        "basketBreakevenPrice": "PLACEHOLDER",
+        "rebindDistanceToBreakeven": "PLACEHOLDER",
+        "survivableLevels": "PLACEHOLDER",
+        "estimatedStopOutPrice": "PLACEHOLDER",
+        "maxDrawdownPercent": "PLACEHOLDER"
+      }
+    },
+    {
+      "id": "EURUSD_003",
+      "description": "EURUSD Buy Grid — Aggressive multiplier 2.0, 20 levels",
+      "input": {
+        "account": {
+          "balance": 3000,
+          "equity": 3000,
+          "currency": "USD",
+          "leverage": 500,
+          "stopOutPercent": 20
+        },
+        "instrument": {
+          "symbol": "EURUSD",
+          "contractSize": 100000,
+          "tickSize": 0.0001,
+          "tickValuePerLot": 10.0,
+          "digits": 5,
+          "lotMin": 0.01,
+          "lotMax": 100,
+          "lotStep": 0.01
+        },
+        "execution": {
+          "spreadPoints": 15,
+          "commissionPerLot": 0,
+          "swapPerLotPerDay": 0,
+          "holdingDays": 0,
+          "hedgeMode": "hedgingFull"
+        },
+        "strategy": {
+          "direction": "buy",
+          "initialLot": 0.01,
+          "multiplier": 2.0,
+          "distanceMode": "fixed",
+          "fixedDistance": 0.0030,
+          "levels": 20,
+          "roundingMode": "round"
+        },
+        "currentPrice": 1.08500
+      },
+      "expected": {
+        "totalExposureLots": "PLACEHOLDER",
+        "averageEntryPrice": "PLACEHOLDER",
+        "basketBreakevenPrice": "PLACEHOLDER",
+        "rebindDistanceToBreakeven": "PLACEHOLDER",
+        "survivableLevels": "PLACEHOLDER",
+        "estimatedStopOutPrice": "PLACEHOLDER",
+        "maxDrawdownPercent": "PLACEHOLDER"
+      }
+    },
+    {
+      "id": "XAUUSD_006",
+      "description": "XAUUSD Buy Grid — Floor rounding, compare vs round",
+      "input": {
+        "account": {
+          "balance": 10000,
+          "equity": 10000,
+          "currency": "USD",
+          "leverage": 500,
+          "stopOutPercent": 20
+        },
+        "instrument": {
+          "symbol": "XAUUSD",
+          "contractSize": 100,
+          "tickSize": 0.01,
+          "tickValuePerLot": 1.0,
+          "digits": 2,
+          "lotMin": 0.01,
+          "lotMax": 100,
+          "lotStep": 0.01
+        },
+        "execution": {
+          "spreadPoints": 30,
+          "commissionPerLot": 0,
+          "swapPerLotPerDay": 0,
+          "holdingDays": 0,
+          "hedgeMode": "hedgingFull"
+        },
+        "strategy": {
+          "direction": "buy",
+          "initialLot": 0.01,
+          "multiplier": 1.5,
+          "distanceMode": "fixed",
+          "fixedDistance": 10,
+          "levels": 10,
+          "roundingMode": "floor"
+        },
+        "currentPrice": 3300.00
+      },
+      "expected": {
+        "totalExposureLots": "PLACEHOLDER",
+        "averageEntryPrice": "PLACEHOLDER",
+        "basketBreakevenPrice": "PLACEHOLDER",
+        "rebindDistanceToBreakeven": "PLACEHOLDER",
+        "survivableLevels": "PLACEHOLDER",
+        "estimatedStopOutPrice": "PLACEHOLDER",
+        "maxDrawdownPercent": "PLACEHOLDER"
+      }
+    },
+    {
+      "id": "XAUUSD_007",
+      "description": "XAUUSD Sell Grid — Ceiling rounding, compare vs round",
+      "input": {
+        "account": {
+          "balance": 10000,
+          "equity": 10000,
+          "currency": "USD",
+          "leverage": 500,
+          "stopOutPercent": 20
+        },
+        "instrument": {
+          "symbol": "XAUUSD",
+          "contractSize": 100,
+          "tickSize": 0.01,
+          "tickValuePerLot": 1.0,
+          "digits": 2,
+          "lotMin": 0.01,
+          "lotMax": 100,
+          "lotStep": 0.01
+        },
+        "execution": {
+          "spreadPoints": 30,
+          "commissionPerLot": 0,
+          "swapPerLotPerDay": 0,
+          "holdingDays": 0,
+          "hedgeMode": "hedgingFull"
+        },
+        "strategy": {
+          "direction": "sell",
+          "initialLot": 0.01,
+          "multiplier": 1.5,
+          "distanceMode": "fixed",
+          "fixedDistance": 10,
+          "levels": 10,
+          "roundingMode": "ceiling"
+        },
+        "currentPrice": 3300.00
+      },
+      "expected": {
+        "totalExposureLots": "PLACEHOLDER",
+        "averageEntryPrice": "PLACEHOLDER",
+        "basketBreakevenPrice": "PLACEHOLDER",
+        "rebindDistanceToBreakeven": "PLACEHOLDER",
+        "survivableLevels": "PLACEHOLDER",
+        "estimatedStopOutPrice": "PLACEHOLDER",
+        "maxDrawdownPercent": "PLACEHOLDER"
+      }
+    },
+    {
+      "id": "XAUUSD_008",
+      "description": "XAUUSD Buy Grid — Netting hedge mode",
+      "input": {
+        "account": {
+          "balance": 10000,
+          "equity": 10000,
+          "currency": "USD",
+          "leverage": 500,
+          "stopOutPercent": 20
+        },
+        "instrument": {
+          "symbol": "XAUUSD",
+          "contractSize": 100,
+          "tickSize": 0.01,
+          "tickValuePerLot": 1.0,
+          "digits": 2,
+          "lotMin": 0.01,
+          "lotMax": 100,
+          "lotStep": 0.01
+        },
+        "execution": {
+          "spreadPoints": 30,
+          "commissionPerLot": 0,
+          "swapPerLotPerDay": 0,
+          "holdingDays": 0,
+          "hedgeMode": "netting"
+        },
+        "strategy": {
+          "direction": "buy",
+          "initialLot": 0.01,
+          "multiplier": 1.5,
+          "distanceMode": "fixed",
+          "fixedDistance": 10,
+          "levels": 10,
+          "roundingMode": "round"
+        },
+        "currentPrice": 3300.00
+      },
+      "expected": {
+        "totalExposureLots": "PLACEHOLDER",
+        "averageEntryPrice": "PLACEHOLDER",
+        "basketBreakevenPrice": "PLACEHOLDER",
+        "rebindDistanceToBreakeven": "PLACEHOLDER",
+        "survivableLevels": "PLACEHOLDER",
+        "estimatedStopOutPrice": "PLACEHOLDER",
+        "maxDrawdownPercent": "PLACEHOLDER"
+      }
+    },
+    {
+      "id": "EURUSD_004",
+      "description": "EURUSD Sell Grid — With constraints (maxDD 25%, maxLot 0.5)",
+      "input": {
+        "account": {
+          "balance": 5000,
+          "equity": 5000,
+          "currency": "USD",
+          "leverage": 500,
+          "stopOutPercent": 20
+        },
+        "instrument": {
+          "symbol": "EURUSD",
+          "contractSize": 100000,
+          "tickSize": 0.0001,
+          "tickValuePerLot": 10.0,
+          "digits": 5,
+          "lotMin": 0.01,
+          "lotMax": 100,
+          "lotStep": 0.01
+        },
+        "execution": {
+          "spreadPoints": 15,
+          "commissionPerLot": 0,
+          "swapPerLotPerDay": 0,
+          "holdingDays": 0,
+          "hedgeMode": "hedgingFull"
+        },
+        "strategy": {
+          "direction": "sell",
+          "initialLot": 0.05,
+          "multiplier": 1.5,
+          "distanceMode": "fixed",
+          "fixedDistance": 0.0030,
+          "levels": 10,
+          "roundingMode": "round"
+        },
+        "currentPrice": 1.08500,
+        "constraints": {
+          "maxDrawdownPercent": 25,
+          "maxTotalLot": 0.5
+        }
+      },
+      "expected": {
+        "totalExposureLots": "PLACEHOLDER",
+        "averageEntryPrice": "PLACEHOLDER",
+        "basketBreakevenPrice": "PLACEHOLDER",
+        "rebindDistanceToBreakeven": "PLACEHOLDER",
+        "survivableLevels": "PLACEHOLDER",
+        "estimatedStopOutPrice": "PLACEHOLDER",
+        "maxDrawdownPercent": "PLACEHOLDER",
+        "constraintViolatedAtLevel": "PLACEHOLDER"
+      }
+    }
+  ]
+}

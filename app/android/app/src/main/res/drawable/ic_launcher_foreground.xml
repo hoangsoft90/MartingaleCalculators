@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  App Icon Foreground: Grid chart with upward trend
+  Represents: Grid trading strategy analysis
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Background circle -->
+    <path
+        android:fillColor="#1E3A5F"
+        android:pathData="M54,54m-40,0a40,40 0,1 1,80 0a40,40 0,1 1,-80 0"/>
+
+    <!-- Grid lines (vertical) -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="0.5"
+        android:pathData="M30,30L30,78M42,30L42,78M54,30L54,78M66,30L66,78M78,30L78,78"/>
+
+    <!-- Grid lines (horizontal) -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="0.5"
+        android:pathData="M30,42L78,42M30,54L78,54M30,66L78,66"/>
+
+    <!-- Candlestick 1 (green/up) -->
+    <path
+        android:fillColor="#4CAF50"
+        android:pathData="M34,45L38,45L38,55L34,55Z"/>
+    <path
+        android:strokeColor="#4CAF50"
+        android:strokeWidth="1"
+        android:pathData="M36,40L36,45M36,55L36,60"/>
+
+    <!-- Candlestick 2 (red/down) -->
+    <path
+        android:fillColor="#F44336"
+        android:pathData="M46,50L50,50L50,60L46,60Z"/>
+    <path
+        android:strokeColor="#F44336"
+        android:strokeWidth="1"
+        android:pathData="M48,45L48,50M48,60L48,65"/>
+
+    <!-- Candlestick 3 (green/up) -->
+    <path
+        android:fillColor="#4CAF50"
+        android:pathData="M58,42L62,42L62,52L58,52Z"/>
+    <path
+        android:strokeColor="#4CAF50"
+        android:strokeWidth="1"
+        android:pathData="M60,37L60,42M60,52L60,57"/>
+
+    <!-- Candlestick 4 (green/up) -->
+    <path
+        android:fillColor="#4CAF50"
+        android:pathData="M70,38L74,38L74,48L70,48Z"/>
+    <path
+        android:strokeColor="#4CAF50"
+        android:strokeWidth="1"
+        android:pathData="M72,33L72,38M72,48L72,53"/>
+
+    <!-- Trend line (upward) -->
+    <path
+        android:strokeColor="#FFD700"
+        android:strokeWidth="1.5"
+        android:pathData="M32,58L44,52L56,48L68,40L76,36"/>
+
+    <!-- Arrow head -->
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="M74,33L80,36L74,39Z"/>
+</vector>
