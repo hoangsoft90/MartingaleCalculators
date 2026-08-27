@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:grid_engine/grid_engine.dart';
 import '../../state/strategy_provider.dart';
+import '../../widgets/banner_ad_widget.dart';
 import '../dashboard/dashboard_screen.dart';
 
 class QuickCalculatorScreen extends ConsumerStatefulWidget {
@@ -128,11 +129,16 @@ class _QuickCalculatorScreenState extends ConsumerState<QuickCalculatorScreen> {
         title: const Text('Grid Survival Simulator'),
         centerTitle: true,
       ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
+      body: SafeArea(
+        top: false,
+        child: Column(
           children: [
+            Expanded(
+              child: Form(
+                key: _formKey,
+                child: ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
             // Symbol selector
             DropdownButtonFormField<String>(
               value: instrument.symbol,
@@ -376,6 +382,11 @@ class _QuickCalculatorScreenState extends ConsumerState<QuickCalculatorScreen> {
               ),
               textAlign: TextAlign.center,
             ),
+          ],
+                ),
+              ),
+            ),
+            const AppBannerAd(),
           ],
         ),
       ),

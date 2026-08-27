@@ -10,7 +10,13 @@ class HiveRepository {
 
   /// Open the strategies box.
   static Future<Box<Map>> _openBox() async {
-    return await Hive.openBox<Map>(_boxName);
+    try {
+      return await Hive.openBox<Map>(_boxName);
+    } catch (e) {
+      // If box is corrupted, delete and recreate
+      await Hive.deleteBoxFromDisk(_boxName);
+      return await Hive.openBox<Map>(_boxName);
+    }
   }
 
   /// Save a strategy with metadata.
@@ -23,26 +29,30 @@ class HiveRepository {
     required double currentPrice,
     ConstraintSet? constraints,
   }) async {
-    final box = await _openBox();
+    try {
+      final box = await _openBox();
 
-    if (box.length >= _maxStrategies) {
-      throw StateError(
-        'Maximum $_maxStrategies strategies reached. Delete one before saving.',
-      );
+      if (box.length >= _maxStrategies) {
+        throw StateError(
+          'Maximum $_maxStrategies strategies reached. Delete one before saving.',
+        );
+      }
+
+      final data = {
+        'name': name,
+        'timestamp': DateTime.now().toIso8601String(),
+        'currentPrice': currentPrice,
+        'strategy': _strategyToMap(strategy),
+        'instrument': _instrumentToMap(instrument),
+        'execution': _executionToMap(execution),
+        'account': _accountToMap(account),
+        'constraints': _constraintsToMap(constraints ?? const ConstraintSet()),
+      };
+
+      await box.add(data);
+    } catch (e) {
+      rethrow;
     }
-
-    final data = {
-      'name': name,
-      'timestamp': DateTime.now().toIso8601String(),
-      'currentPrice': currentPrice,
-      'strategy': _strategyToMap(strategy),
-      'instrument': _instrumentToMap(instrument),
-      'execution': _executionToMap(execution),
-      'account': _accountToMap(account),
-      'constraints': _constraintsToMap(constraints ?? const ConstraintSet()),
-    };
-
-    await box.add(data);
   }
 
   /// Load all saved strategies.
