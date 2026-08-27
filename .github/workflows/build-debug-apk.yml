@@ -41,11 +41,8 @@ jobs:
       - name: Flutter pub get
         run: cd app && flutter pub get
 
-      - name: Build debug APK (gradle directly)
-        run: |
-          cd app/android
-          chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon
+      - name: Build debug APK
+        run: cd app && flutter build apk --debug
         
       - name: Upload debug APK
         uses: actions/upload-artifact@v4

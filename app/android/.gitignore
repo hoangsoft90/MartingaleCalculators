@@ -1,6 +1,7 @@
 /.gradle
 /captures/
 /local.properties
+*.iml
 GeneratedPluginRegistrant.java
 .cxx/
 
