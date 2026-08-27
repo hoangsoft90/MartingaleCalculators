@@ -135,7 +135,7 @@ class _QuickCalculatorScreenState extends ConsumerState<QuickCalculatorScreen> {
           children: [
             // Symbol selector
             DropdownButtonFormField<String>(
-              initialValue: instrument.symbol,
+              value: instrument.symbol,
               decoration: const InputDecoration(
                 labelText: 'Symbol',
                 border: OutlineInputBorder(),
