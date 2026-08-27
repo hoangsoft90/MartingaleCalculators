@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import 'package:grid_engine/grid_engine.dart';
 
@@ -11,11 +12,22 @@ class HiveRepository {
   /// Open the strategies box.
   static Future<Box<Map>> _openBox() async {
     try {
-      return await Hive.openBox<Map>(_boxName);
+      debugPrint('[HiveRepository] Opening box "$_boxName"...');
+      final box = await Hive.openBox<Map>(_boxName);
+      debugPrint('[HiveRepository] Box opened. ${box.length} items.');
+      return box;
     } catch (e) {
-      // If box is corrupted, delete and recreate
-      await Hive.deleteBoxFromDisk(_boxName);
-      return await Hive.openBox<Map>(_boxName);
+      debugPrint('[HiveRepository] ERROR opening box: $e');
+      debugPrint('[HiveRepository] Deleting corrupted box and retrying...');
+      try {
+        await Hive.deleteBoxFromDisk(_boxName);
+        final box = await Hive.openBox<Map>(_boxName);
+        debugPrint('[HiveRepository] Box recreated successfully.');
+        return box;
+      } catch (e2) {
+        debugPrint('[HiveRepository] FATAL: Cannot create box: $e2');
+        rethrow;
+      }
     }
   }
 
@@ -29,61 +41,75 @@ class HiveRepository {
     required double currentPrice,
     ConstraintSet? constraints,
   }) async {
-    try {
-      final box = await _openBox();
+    debugPrint('[HiveRepository] saveStrategy(name="$name")...');
 
-      if (box.length >= _maxStrategies) {
-        throw StateError(
-          'Maximum $_maxStrategies strategies reached. Delete one before saving.',
-        );
-      }
+    final box = await _openBox();
 
-      final data = {
-        'name': name,
-        'timestamp': DateTime.now().toIso8601String(),
-        'currentPrice': currentPrice,
-        'strategy': _strategyToMap(strategy),
-        'instrument': _instrumentToMap(instrument),
-        'execution': _executionToMap(execution),
-        'account': _accountToMap(account),
-        'constraints': _constraintsToMap(constraints ?? const ConstraintSet()),
-      };
-
-      await box.add(data);
-    } catch (e) {
-      rethrow;
+    if (box.length >= _maxStrategies) {
+      debugPrint('[HiveRepository] ERROR: Max strategies reached (${box.length}/$_maxStrategies)');
+      throw StateError(
+        'Maximum $_maxStrategies strategies reached. Delete one before saving.',
+      );
     }
+
+    final data = {
+      'name': name,
+      'timestamp': DateTime.now().toIso8601String(),
+      'currentPrice': currentPrice,
+      'strategy': _strategyToMap(strategy),
+      'instrument': _instrumentToMap(instrument),
+      'execution': _executionToMap(execution),
+      'account': _accountToMap(account),
+      'constraints': _constraintsToMap(constraints ?? const ConstraintSet()),
+    };
+
+    debugPrint('[HiveRepository] Data keys: ${data.keys.toList()}');
+    await box.add(data);
+    debugPrint('[HiveRepository] Save successful! Box now has ${box.length} items.');
   }
 
   /// Load all saved strategies.
   static Future<List<SavedStrategy>> loadAll() async {
+    debugPrint('[HiveRepository] loadAll()...');
     final box = await _openBox();
     final strategies = <SavedStrategy>[];
+
+    debugPrint('[HiveRepository] Box has ${box.length} items');
 
     for (int i = 0; i < box.length; i++) {
       final data = box.getAt(i);
       if (data != null) {
-        strategies.add(SavedStrategy(
-          index: i,
-          name: data['name'] as String? ?? 'Unnamed',
-          timestamp: DateTime.tryParse(data['timestamp'] as String? ?? '') ?? DateTime.now(),
-          strategy: _mapToStrategy(data['strategy'] as Map? ?? {}),
-          instrument: _mapToInstrument(data['instrument'] as Map? ?? {}),
-          execution: _mapToExecution(data['execution'] as Map? ?? {}),
-          account: _mapToAccount(data['account'] as Map? ?? {}),
-          currentPrice: (data['currentPrice'] as num?)?.toDouble() ?? 0,
-          constraints: _mapToConstraints(data['constraints'] as Map? ?? {}),
-        ));
+        debugPrint('[HiveRepository] Item $i: keys=${data.keys.toList()}');
+        try {
+          strategies.add(SavedStrategy(
+            index: i,
+            name: data['name'] as String? ?? 'Unnamed',
+            timestamp: DateTime.tryParse(data['timestamp'] as String? ?? '') ?? DateTime.now(),
+            strategy: _mapToStrategy(data['strategy'] as Map? ?? {}),
+            instrument: _mapToInstrument(data['instrument'] as Map? ?? {}),
+            execution: _mapToExecution(data['execution'] as Map? ?? {}),
+            account: _mapToAccount(data['account'] as Map? ?? {}),
+            currentPrice: (data['currentPrice'] as num?)?.toDouble() ?? 0,
+            constraints: _mapToConstraints(data['constraints'] as Map? ?? {}),
+          ));
+          debugPrint('[HiveRepository] Item $i loaded: ${strategies.last.name}');
+        } catch (e) {
+          debugPrint('[HiveRepository] ERROR parsing item $i: $e');
+          // Skip corrupted item
+        }
       }
     }
 
+    debugPrint('[HiveRepository] loadAll() returning ${strategies.length} strategies');
     return strategies;
   }
 
   /// Delete a strategy by index.
   static Future<void> deleteStrategy(int index) async {
+    debugPrint('[HiveRepository] deleteStrategy(index=$index)...');
     final box = await _openBox();
     await box.deleteAt(index);
+    debugPrint('[HiveRepository] Delete successful. Box now has ${box.length} items.');
   }
 
   /// Get the number of saved strategies.
