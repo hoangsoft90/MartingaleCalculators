@@ -26,7 +26,9 @@ class _AppBannerAdState extends State<AppBannerAd> {
   @override
   void initState() {
     super.initState();
-    _loadAd();
+    if (AppConfig.enableAds) {
+      _loadAd();
+    }
   }
 
   String get _adUnitId {
@@ -75,7 +77,7 @@ class _AppBannerAdState extends State<AppBannerAd> {
 
   @override
   Widget build(BuildContext context) {
-    if (_hasError) {
+    if (!AppConfig.enableAds || _hasError) {
       return const SizedBox.shrink();
     }
 

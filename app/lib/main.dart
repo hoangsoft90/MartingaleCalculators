@@ -28,16 +28,18 @@ void main() async {
       // Initialize Hive for persistence
       await Hive.initFlutter();
 
-      // Initialize AdMob SDK
-      unawaited(MobileAds.instance.initialize());
+      // Initialize AdMob SDK (only if ads enabled)
+      if (AppConfig.enableAds) {
+        unawaited(MobileAds.instance.initialize());
 
-      // Set test device IDs if in test mode
-      if (AppConfig.testAds) {
-        MobileAds.instance.updateRequestConfiguration(
-          RequestConfiguration(
-            testDeviceIds: [], // Emulators/simulators auto-detected
-          ),
-        );
+        // Set test device IDs if in test mode
+        if (AppConfig.testAds) {
+          MobileAds.instance.updateRequestConfiguration(
+            RequestConfiguration(
+              testDeviceIds: [], // Emulators/simulators auto-detected
+            ),
+          );
+        }
       }
 
       // Lock to portrait for mobile
@@ -70,6 +72,19 @@ class GridSurvivalApp extends StatelessWidget {
         ),
         useMaterial3: true,
         fontFamily: 'Roboto',
+        appBarTheme: const AppBarTheme(
+          centerTitle: true,
+          elevation: 0,
+          scrolledUnderElevation: 4,
+          backgroundColor: Color(0xFF1E3A5F),
+          foregroundColor: Color(0xFFFFFFFF),
+          titleTextStyle: TextStyle(
+            color: Color(0xFFFFFFFF),
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.5,
+          ),
+        ),
       ),
       darkTheme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
@@ -78,6 +93,19 @@ class GridSurvivalApp extends StatelessWidget {
         ),
         useMaterial3: true,
         fontFamily: 'Roboto',
+        appBarTheme: const AppBarTheme(
+          centerTitle: true,
+          elevation: 0,
+          scrolledUnderElevation: 4,
+          backgroundColor: Color(0xFF0D1B2A),
+          foregroundColor: Color(0xFFFFFFFF),
+          titleTextStyle: TextStyle(
+            color: Color(0xFFFFFFFF),
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.5,
+          ),
+        ),
       ),
       themeMode: ThemeMode.system,
 

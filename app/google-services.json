@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "627864874481",
+    "project_id": "gridsurvivalsimulator",
+    "storage_bucket": "gridsurvivalsimulator.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:627864874481:android:18fc32367f2329881ce850",
+        "android_client_info": {
+          "package_name": "com.gridsurvival.grid_survival_simulator"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDcyJSFu_KlPqQ29alBZ5KV61ZbURMXjoM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
