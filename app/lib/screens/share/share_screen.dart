@@ -4,14 +4,34 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:grid_engine/grid_engine.dart';
 import '../../state/strategy_provider.dart';
 import '../../widgets/safe_scaffold.dart';
 
-class ShareScreen extends ConsumerWidget {
+class ShareScreen extends ConsumerStatefulWidget {
   const ShareScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ShareScreen> createState() => _ShareScreenState();
+}
+
+class _ShareScreenState extends ConsumerState<ShareScreen> {
+  final _screenshotController = ScreenshotController();
+
+  Future<void> _shareImage(InstrumentSpec instrument) async {
+    final image = await _screenshotController.capture();
+    if (image != null && mounted) {
+      final tempDir = await getTemporaryDirectory();
+      final file = await File('${tempDir.path}/grid_result.png').writeAsBytes(image);
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        text: 'Grid Survival Simulator - ${instrument.symbol}',
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final result = ref.watch(calculationResultProvider);
     final strategy = ref.watch(strategySpecProvider);
     final instrument = ref.watch(instrumentSpecProvider);
@@ -22,24 +42,12 @@ class ShareScreen extends ConsumerWidget {
       );
     }
 
-    final screenshotController = ScreenshotController();
-
     return SafeScaffold(
       title: 'Share Results',
       actions: [
         IconButton(
           icon: const Icon(Icons.share),
-          onPressed: () async {
-            final image = await screenshotController.capture();
-            if (image != null) {
-              final tempDir = await getTemporaryDirectory();
-              final file = await File('${tempDir.path}/grid_result.png').writeAsBytes(image);
-              await Share.shareXFiles(
-                [XFile(file.path)],
-                text: 'Grid Survival Simulator - ${instrument.symbol}',
-              );
-            }
-          },
+          onPressed: () => _shareImage(instrument),
         ),
       ],
       body: ListView(
@@ -47,15 +55,14 @@ class ShareScreen extends ConsumerWidget {
         children: [
           // Shareable card
           Screenshot(
-            controller: screenshotController,
+            controller: _screenshotController,
             child: Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.surface,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(16),                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -141,17 +148,7 @@ class ShareScreen extends ConsumerWidget {
 
           // Share button
           FilledButton.icon(
-            onPressed: () async {
-              final image = await screenshotController.capture();
-              if (image != null && context.mounted) {
-                final tempDir = await getTemporaryDirectory();
-                final file = await File('${tempDir.path}/grid_result.png').writeAsBytes(image);
-                await Share.shareXFiles(
-                  [XFile(file.path)],
-                  text: 'Grid Survival Simulator - ${instrument.symbol}',
-                );
-              }
-            },
+            onPressed: () => _shareImage(instrument),
             icon: const Icon(Icons.share),
             label: const Text('Share as Image'),
             style: FilledButton.styleFrom(

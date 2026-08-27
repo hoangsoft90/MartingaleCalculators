@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import '../screens/dashboard/dashboard_screen.dart';
 import '../screens/quick_calculator/quick_calculator_screen.dart';
+import 'banner_ad_widget.dart';
 
-/// Safe Scaffold wrapper with PopScope for web back button handling.
-/// 
+/// Safe Scaffold wrapper with PopScope for web back button handling
+/// and proper SafeArea padding for Android 3-button navigation.
+///
 /// Features:
 /// - Handles web browser back button properly
 /// - Optional back navigation to parent screen
 /// - Consistent AppBar with optional actions
+/// - SafeArea padding prevents content from being hidden by nav buttons
+/// - Optional bottom banner ad slot
 class SafeScaffold extends StatelessWidget {
   final String? title;
   final Widget body;
@@ -18,6 +22,7 @@ class SafeScaffold extends StatelessWidget {
   final bool canPop;
   final VoidCallback? onPopInvoked;
   final Color? backgroundColor;
+  final bool showBannerAd;
 
   const SafeScaffold({
     super.key,
@@ -30,6 +35,7 @@ class SafeScaffold extends StatelessWidget {
     this.canPop = true,
     this.onPopInvoked,
     this.backgroundColor,
+    this.showBannerAd = true,
   });
 
   @override
@@ -53,7 +59,16 @@ class SafeScaffold extends StatelessWidget {
                 actions: actions,
               )
             : null,
-        body: body,
+        body: SafeArea(
+          top: false, // AppBar handles top padding
+          bottom: true, // Ensures space for Android 3-button nav
+          child: Column(
+            children: [
+              Expanded(child: body),
+              if (showBannerAd) const AppBannerAd(),
+            ],
+          ),
+        ),
         floatingActionButton: floatingActionButton,
         bottomNavigationBar: bottomNavigationBar,
         resizeToAvoidBottomInset: resizeToAvoidBottomInset,

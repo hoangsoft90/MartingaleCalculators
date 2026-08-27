@@ -5,11 +5,18 @@ import 'package:grid_engine/grid_engine.dart';
 import '../../state/strategy_provider.dart';
 import '../../widgets/safe_scaffold.dart';
 
-class PriceLadderScreen extends ConsumerWidget {
+class PriceLadderScreen extends ConsumerStatefulWidget {
   const PriceLadderScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<PriceLadderScreen> createState() => _PriceLadderScreenState();
+}
+
+class _PriceLadderScreenState extends ConsumerState<PriceLadderScreen> {
+  int? _selectedLevelIndex;
+
+  @override
+  Widget build(BuildContext context) {
     final result = ref.watch(calculationResultProvider);
     final instrument = ref.watch(instrumentSpecProvider);
     final currentPrice = ref.watch(currentPriceProvider);
@@ -55,12 +62,18 @@ class PriceLadderScreen extends ConsumerWidget {
                 stopOut: result.estimatedStopOutPrice,
                 currentPrice: currentPrice,
                 instrument: instrument,
+                onLevelTap: (index) {
+                  setState(() => _selectedLevelIndex = index);
+                },
               ),
             ),
           ),
 
           // Selected level details
-          _LevelDetailsPanel(levels: result.levels),
+          _LevelDetailsPanel(
+            levels: result.levels,
+            selectedIndex: _selectedLevelIndex,
+          ),
         ],
       ),
     );
@@ -92,6 +105,7 @@ class _PriceLadderChart extends StatelessWidget {
   final double? stopOut;
   final double currentPrice;
   final InstrumentSpec instrument;
+  final Function(int)? onLevelTap;
 
   const _PriceLadderChart({
     required this.levels,
@@ -100,6 +114,7 @@ class _PriceLadderChart extends StatelessWidget {
     this.stopOut,
     required this.currentPrice,
     required this.instrument,
+    this.onLevelTap,
   });
 
   @override
@@ -215,6 +230,17 @@ class _PriceLadderChart extends StatelessWidget {
         ],
         lineTouchData: LineTouchData(
           enabled: true,
+          touchCallback: (event, response) {
+            if (event is FlTapUpEvent && response?.lineBarSpots != null && onLevelTap != null) {
+              final spot = response!.lineBarSpots!.first;
+              final levelIndex = levels.indexWhere(
+                (l) => (l.entryPrice - spot.y).abs() < 0.01,
+              );
+              if (levelIndex >= 0) {
+                onLevelTap!(levelIndex);
+              }
+            }
+          },
           touchTooltipData: LineTouchTooltipData(
             getTooltipItems: (touchedSpots) {
               return touchedSpots.map((spot) {
@@ -239,31 +265,25 @@ class _PriceLadderChart extends StatelessWidget {
   }
 }
 
-class _LevelDetailsPanel extends StatefulWidget {
+class _LevelDetailsPanel extends StatelessWidget {
   final List<GridLevel> levels;
+  final int? selectedIndex;
 
-  const _LevelDetailsPanel({required this.levels});
-
-  @override
-  State<_LevelDetailsPanel> createState() => _LevelDetailsPanelState();
-}
-
-class _LevelDetailsPanelState extends State<_LevelDetailsPanel> {
-  int? _selectedIndex;
+  const _LevelDetailsPanel({required this.levels, this.selectedIndex});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       height: 120,
       padding: const EdgeInsets.all(16),
-      child: _selectedIndex == null
+      child: selectedIndex == null
           ? Center(
               child: Text(
                 'Tap a level on the chart to see details',
                 style: TextStyle(color: Colors.grey[500]),
               ),
             )
-          : _buildDetail(widget.levels[_selectedIndex!]),
+          : _buildDetail(levels[selectedIndex!]),
     );
   }
 

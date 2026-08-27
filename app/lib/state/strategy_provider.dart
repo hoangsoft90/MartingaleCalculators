@@ -109,11 +109,27 @@ final calculationResultProvider = Provider<CalculationResult?>((ref) {
     totalLot += level.roundedLot;
   }
 
+  // Calculate max drawdown: worst-case loss when all levels trigger
+  double maxDrawdownPercent = 0;
+  if (account.equity > 0) {
+    final worstCasePnl = PnlCalculator.calculateFloatingPnl(
+      levels: levels,
+      direction: strategy.direction,
+      instrument: instrument,
+      execution: execution,
+      assumedPrice: strategy.direction == Direction.buy
+          ? (levels.isNotEmpty ? levels.last.entryPrice : currentPrice)
+          : (levels.isNotEmpty ? levels.last.entryPrice : currentPrice),
+    );
+    final worstDrawdown = (-worstCasePnl / account.equity) * 100;
+    maxDrawdownPercent = worstDrawdown.clamp(0, 100);
+  }
+
   final constraintResults = ConstraintEvaluator.evaluate(
     constraints: constraints,
     account: account,
     levels: levels,
-    maxDrawdownPercent: 0, // Would be calculated from scenario
+    maxDrawdownPercent: maxDrawdownPercent,
     totalExposureLots: totalLot,
     totalRequiredMargin: totalMargin,
     totalFloatingPnl: 0,
@@ -130,7 +146,7 @@ final calculationResultProvider = Provider<CalculationResult?>((ref) {
     rebindDistanceToBreakeven: rebindDistance,
     survivableLevels: survival.survivableLevels,
     estimatedStopOutPrice: survival.estimatedStopOutPrice,
-    maxDrawdownPercent: 0,
+    maxDrawdownPercent: maxDrawdownPercent,
     constraintResults: constraintResults,
     assumptionsUsed: [
       'Spread: ${execution.spreadPoints} points (user-defined)',
