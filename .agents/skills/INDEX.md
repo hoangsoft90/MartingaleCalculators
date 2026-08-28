@@ -9,6 +9,7 @@
 | Build APK/AAB trên CI | `flutter-android-build-lessons.md` |
 | Sửa engine calculation | `grid-engine-coding-lessons.md` |
 | Git commit / CI workflow | `git-ci-workflow-lessons.md` |
+| Cross-project (bất kỳ Flutter/Android project) | `cross-project-lessons.md` |
 
 ## Tóm tắt bài học quan trọng nhất
 
