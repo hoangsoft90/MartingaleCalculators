@@ -26,15 +26,10 @@ android {
     signingConfigs {
         create("release") {
             // CI: use environment variables. Local: use key.properties.
-            val storeFilePath = System.getenv("KEYSTORE_FILE") ?: "release-keystore.jks"
-            val storePassword = System.getenv("KEYSTORE_PASSWORD") ?: "83793900"
-            val keyAlias = System.getenv("KEY_ALIAS") ?: "gridsurvival"
-            val keyPassword = System.getenv("KEY_PASSWORD") ?: "83793900"
-            
-            storeFile = file(storeFilePath)
-            storePassword = storePassword
-            this.keyAlias = keyAlias
-            this.keyPassword = keyPassword
+            storeFile = file(System.getenv("KEYSTORE_FILE") ?: "release-keystore.jks")
+            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: "83793900"
+            keyAlias = System.getenv("KEY_ALIAS") ?: "gridsurvival"
+            keyPassword = System.getenv("KEY_PASSWORD") ?: "83793900"
         }
     }
 
