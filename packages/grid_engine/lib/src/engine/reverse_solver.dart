@@ -5,6 +5,7 @@ import '../models/strategy_spec.dart';
 import '../models/constraint_set.dart';
 import 'grid_builder.dart';
 import 'margin_calculator.dart';
+import 'pnl_calculator.dart';
 import 'constraint_evaluator.dart';
 
 /// Reverse solver — finds maximum initial lot that satisfies constraints.
@@ -31,6 +32,7 @@ class ReverseSolver {
     required ExecutionSpec execution,
     required StrategySpec strategy,
     required ConstraintSet constraints,
+    required double currentPrice,
     double? multiplierOverride,
   }) {
     if (!constraints.hasAny) {
@@ -61,6 +63,7 @@ class ReverseSolver {
         execution: execution,
         strategy: effectiveStrategy,
         constraints: constraints,
+        currentPrice: currentPrice,
       )) {
         bestLot = mid;
         low = mid + instrument.lotStep;
@@ -77,6 +80,7 @@ class ReverseSolver {
       execution: execution,
       strategy: effectiveStrategy,
       constraints: constraints,
+      currentPrice: currentPrice,
     );
 
     return ReverseResult(
@@ -100,6 +104,7 @@ class ReverseSolver {
     required ExecutionSpec execution,
     required StrategySpec strategy,
     required ConstraintSet constraints,
+    required double currentPrice,
   }) {
     final results = _buildAndCheck(
       initialLot: initialLot,
@@ -108,6 +113,7 @@ class ReverseSolver {
       execution: execution,
       strategy: strategy,
       constraints: constraints,
+      currentPrice: currentPrice,
     );
     return results.every((r) => r.passed);
   }
@@ -120,6 +126,7 @@ class ReverseSolver {
     required ExecutionSpec execution,
     required StrategySpec strategy,
     required ConstraintSet constraints,
+    required double currentPrice,
   }) {
     final effectiveStrategy = strategy.copyWith(initialLot: initialLot);
 
@@ -127,7 +134,7 @@ class ReverseSolver {
       strategy: effectiveStrategy,
       instrument: instrument,
       execution: execution,
-      currentPrice: 0, // Placeholder for reverse solver
+      currentPrice: currentPrice,
     );
 
     MarginCalculator.calculate(
@@ -137,21 +144,37 @@ class ReverseSolver {
       execution: execution,
     );
 
-    double totalMargin = 0;
+    final totalMargin = MarginCalculator.totalMargin(levels, execution.hedgeMode);
     double totalLot = 0;
     for (final level in levels) {
-      totalMargin += level.requiredMargin;
       totalLot += level.roundedLot;
+    }
+
+    // Calculate worst-case floating P/L at adverse price
+    double worstCasePnl = 0;
+    double maxDrawdownPercent = 0;
+    if (levels.isNotEmpty && account.equity > 0) {
+      final worstCasePrice = strategy.direction == Direction.buy
+          ? levels.last.entryPrice   // BUY: price drops → last level triggers
+          : levels.first.entryPrice; // SELL: price rises → first level is worst
+      worstCasePnl = PnlCalculator.calculateFloatingPnl(
+        levels: levels,
+        direction: strategy.direction,
+        instrument: instrument,
+        execution: execution,
+        assumedPrice: worstCasePrice,
+      );
+      maxDrawdownPercent = ((-worstCasePnl / account.equity) * 100).clamp(0, 100);
     }
 
     return ConstraintEvaluator.evaluate(
       constraints: constraints,
       account: account,
       levels: levels,
-      maxDrawdownPercent: 0, // Would be calculated properly
+      maxDrawdownPercent: maxDrawdownPercent,
       totalExposureLots: totalLot,
       totalRequiredMargin: totalMargin,
-      totalFloatingPnl: 0,
+      totalFloatingPnl: worstCasePnl,
     );
   }
 

@@ -93,6 +93,9 @@ class MarginCalculator {
   }
 
   /// Netting: margin only on the net position.
+  // TODO: verify notional formula against golden case (Phase 1)
+  // Currently uses entryPrice of the current level for the entire net lot.
+  // Broker may use average entry or last traded price instead.
   static void _calculateNetting(
     List<GridLevel> levels,
     AccountSpec account,
@@ -109,6 +112,10 @@ class MarginCalculator {
   }
 
   /// Hedging Reduced: hedged portion uses reduced margin factor.
+  ///
+  /// NOTE: Currently all grids are single-direction (no opposing positions),
+  /// so hedgedMarginFactor is NOT applied — behaves identically to hedgingFull.
+  /// The factor will only take effect when multi-direction grids are implemented.
   static void _calculateHedgingReduced(
     List<GridLevel> levels,
     AccountSpec account,
@@ -116,32 +123,36 @@ class MarginCalculator {
     double hedgedMarginFactor,
     double leverage,
   ) {
-    for (int i = 0; i < levels.length; i++) {
-      final level = levels[i];
-
-      // For single-direction grids, no hedging occurs
-      // For mixed directions (future), calculate hedged portion
-      final notional = level.roundedLot * instrument.contractSize * level.entryPrice;
-      final fullMargin = notional / leverage;
-
-      // Apply reduced margin factor
-      final margin = fullMargin * hedgedMarginFactor;
-
-      levels[i] = level.copyWith(requiredMargin: margin);
-    }
+    // Single-direction grid: no hedged portion → full margin (same as hedgingFull)
+    // TODO: apply hedgedMarginFactor only when multi-direction grid is implemented
+    _calculateHedgingFull(levels, account, instrument, leverage);
   }
 
   /// Calculate total required margin across all levels.
-  static double totalMargin(List<GridLevel> levels) {
-    double total = 0;
-    for (final level in levels) {
-      total += level.requiredMargin;
+  ///
+  /// For hedgingFull/hedgingReduced: sum all levels (each position independent).
+  /// For netting: use only the last triggered level's requiredMargin
+  /// (it's already cumulative — summing would double-count).
+  static double totalMargin(List<GridLevel> levels, HedgeMode hedgeMode) {
+    if (levels.isEmpty) return 0;
+
+    switch (hedgeMode) {
+      case HedgeMode.netting:
+        // Netting: requiredMargin is cumulative — only the last value matters
+        return levels.last.requiredMargin;
+      case HedgeMode.hedgingFull:
+      case HedgeMode.hedgingReduced:
+        // Each level pays full/reduced margin independently
+        double total = 0;
+        for (final level in levels) {
+          total += level.requiredMargin;
+        }
+        return total;
     }
-    return total;
   }
 
   /// Calculate free margin.
-  static double freeMargin(AccountSpec account, List<GridLevel> levels) {
-    return account.equity - totalMargin(levels);
+  static double freeMargin(AccountSpec account, List<GridLevel> levels, HedgeMode hedgeMode) {
+    return account.equity - totalMargin(levels, hedgeMode);
   }
 }

@@ -45,6 +45,7 @@ class _RiskBudgetScreenState extends ConsumerState<RiskBudgetScreen> {
         execution: ref.read(executionSpecProvider),
         strategy: ref.read(strategySpecProvider),
         constraints: constraints,
+        currentPrice: ref.read(currentPriceProvider),
       );
 
       setState(() {

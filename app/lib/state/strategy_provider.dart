@@ -102,27 +102,22 @@ final calculationResultProvider = Provider<CalculationResult?>((ref) {
     basketBreakevenPrice: basketBreakeven,
   );
 
-  double totalMargin = 0;
+  final totalMargin = MarginCalculator.totalMargin(levels, execution.hedgeMode);
   double totalLot = 0;
   for (final level in levels) {
-    totalMargin += level.requiredMargin;
     totalLot += level.roundedLot;
   }
 
-  // Calculate max drawdown: worst-case loss when all levels trigger
+  // Calculate worst-case floating P/L and max drawdown
   // BUY grid → worst case at LOWEST price (levels.last entry)
   // SELL grid → worst case at HIGHEST price (levels.first entry)
+  double worstCasePnl = 0;
   double maxDrawdownPercent = 0;
-  if (account.equity > 0) {
-    double worstCasePrice;
-    if (levels.isNotEmpty) {
-      worstCasePrice = strategy.direction == Direction.buy
-          ? levels.last.entryPrice   // BUY: price drops → last level triggers
-          : levels.first.entryPrice; // SELL: price rises → first level is worst
-    } else {
-      worstCasePrice = currentPrice;
-    }
-    final worstCasePnl = PnlCalculator.calculateFloatingPnl(
+  if (account.equity > 0 && levels.isNotEmpty) {
+    final worstCasePrice = strategy.direction == Direction.buy
+        ? levels.last.entryPrice   // BUY: price drops → last level triggers
+        : levels.first.entryPrice; // SELL: price rises → first level is worst
+    worstCasePnl = PnlCalculator.calculateFloatingPnl(
       levels: levels,
       direction: strategy.direction,
       instrument: instrument,
@@ -140,7 +135,7 @@ final calculationResultProvider = Provider<CalculationResult?>((ref) {
     maxDrawdownPercent: maxDrawdownPercent,
     totalExposureLots: totalLot,
     totalRequiredMargin: totalMargin,
-    totalFloatingPnl: 0,
+    totalFloatingPnl: worstCasePnl,
   );
 
   return CalculationResult(

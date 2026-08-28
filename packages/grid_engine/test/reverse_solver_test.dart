@@ -38,6 +38,7 @@ void main() {
           execution: execution,
           strategy: strategy,
           constraints: const ConstraintSet(),
+          currentPrice: 3300.00,
         ),
         throwsArgumentError,
       );
@@ -50,6 +51,7 @@ void main() {
         execution: execution,
         strategy: strategy,
         constraints: constraints,
+        currentPrice: 3300.00,
       );
 
       expect(result.maximumInitialLot, greaterThanOrEqualTo(xauusd.lotMin));
@@ -64,33 +66,13 @@ void main() {
         execution: execution,
         strategy: strategy,
         constraints: constraints,
+        currentPrice: 3300.00,
       );
 
       expect(result.iterations, lessThanOrEqualTo(20));
     });
 
-    test('tighter constraint reduces maximum lot', () {
-      final looseConstraints = const ConstraintSet(maxDrawdownPercent: 50);
-      final tightConstraints = const ConstraintSet(maxDrawdownPercent: 15);
-
-      final looseResult = ReverseSolver.solve(
-        account: account,
-        instrument: xauusd,
-        execution: execution,
-        strategy: strategy,
-        constraints: looseConstraints,
-      );
-
-      final tightResult = ReverseSolver.solve(
-        account: account,
-        instrument: xauusd,
-        execution: execution,
-        strategy: strategy,
-        constraints: tightConstraints,
-      );
-
-      expect(tightResult.maximumInitialLot, lessThanOrEqualTo(looseResult.maximumInitialLot));
-    });
+    // (old 'tighter constraint reduces maximum lot' replaced by REGRESSION version below)
 
     test('result is multiple of lotStep', () {
       final result = ReverseSolver.solve(
@@ -99,10 +81,101 @@ void main() {
         execution: execution,
         strategy: strategy,
         constraints: constraints,
+        currentPrice: 3300.00,
       );
 
       final remainder = result.maximumInitialLot % xauusd.lotStep;
       expect(remainder, closeTo(0, 0.001));
+    });
+
+    test('REGRESSION: currentPrice must not be 0 — grid entry prices depend on it', () {
+      final tightConstraints = const ConstraintSet(maxTotalLot: 0.15);
+
+      final result = ReverseSolver.solve(
+        account: account,
+        instrument: xauusd,
+        execution: execution,
+        strategy: strategy,
+        constraints: tightConstraints,
+        currentPrice: 3300.00,
+      );
+
+      expect(
+        result.maximumInitialLot,
+        lessThan(xauusd.lotMax),
+        reason: 'Solver returned lotMax — maxTotalLot=0.15 should have capped it',
+      );
+
+      expect(result.bottleneckConstraint, isNotNull);
+      expect(result.bottleneckConstraint!.passed, isFalse);
+      expect(result.bottleneckConstraint!.constraintName, 'Max Total Lot');
+    });
+
+    test('REGRESSION: tighter constraint reduces maximum lot (DD actually binds)', () {
+      // Before fix: both loose and tight DD constraints pass (value=0 always passes)
+      // so both converge to lotMax=100. After fix: DD is calculated from real PnL,
+      // so loose < lotMax and tight < loose.
+      final looseConstraints = const ConstraintSet(maxDrawdownPercent: 80);
+      final tightConstraints = const ConstraintSet(maxDrawdownPercent: 30);
+
+      final looseResult = ReverseSolver.solve(
+        account: account,
+        instrument: xauusd,
+        execution: execution,
+        strategy: strategy,
+        constraints: looseConstraints,
+        currentPrice: 3300.00,
+      );
+
+      final tightResult = ReverseSolver.solve(
+        account: account,
+        instrument: xauusd,
+        execution: execution,
+        strategy: strategy,
+        constraints: tightConstraints,
+        currentPrice: 3300.00,
+      );
+
+      // Loose DD=80% should be binding (not lotMax)
+      expect(
+        looseResult.maximumInitialLot,
+        lessThan(xauusd.lotMax),
+        reason: 'Loose DD=80% returned lotMax — DD constraint not calculating real PnL',
+      );
+
+      // Tighter should reduce lot further
+      expect(
+        tightResult.maximumInitialLot,
+        lessThan(looseResult.maximumInitialLot),
+        reason: 'Tight DD=30% should produce smaller lot than loose DD=80%',
+      );
+    });
+
+    test('REGRESSION: Max Loss 500 constraint limits lot correctly', () {
+      // Before fix: totalFloatingPnl=0 → 0 <= 500 always passes → solver returns lotMax
+      // After fix: actual PnL is calculated, so Max Loss constrains the lot.
+      final maxLossConstraints = const ConstraintSet(maxLossAmount: 500);
+
+      final result = ReverseSolver.solve(
+        account: account,
+        instrument: xauusd,
+        execution: execution,
+        strategy: strategy,
+        constraints: maxLossConstraints,
+        currentPrice: 3300.00,
+      );
+
+      // Solver should NOT return lotMax — the loss constraint must bind
+      expect(
+        result.maximumInitialLot,
+        lessThan(xauusd.lotMax),
+        reason: 'Max Loss 500 returned lotMax — totalFloatingPnl not calculated',
+      );
+
+      // The bottleneck should be Max Loss
+      expect(result.bottleneckConstraint, isNotNull);
+      expect(result.bottleneckConstraint!.passed, isFalse);
+      expect(result.bottleneckConstraint!.constraintName, 'Max Loss');
     });
   });
 }

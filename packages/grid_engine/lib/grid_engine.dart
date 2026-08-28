@@ -22,6 +22,7 @@ export 'src/engine/survival_engine.dart';
 export 'src/engine/scenario_engine.dart';
 export 'src/engine/reverse_solver.dart';
 export 'src/engine/constraint_evaluator.dart';
+export 'src/engine/gap_analyzer.dart';
 
 // Rounding
 export 'src/rounding/lot_rounding.dart';

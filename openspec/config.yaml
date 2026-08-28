@@ -1,32 +1,30 @@
 schema: spec-driven
 
-# Project context (optional)
-# This is shown to AI when creating artifacts.
-# Add your tech stack, conventions, style guides, domain knowledge, etc.
-# Example:
-#   context: |
-#     Tech stack: TypeScript, React, Node.js
-#     We use conventional commits
-#     Domain: e-commerce platform
+context: |
+  Project: Grid Survival Simulator — offline Flutter calculator for grid trading risk analysis.
+  Tech stack: Flutter 3.x, Dart, Riverpod (state), Hive (persistence), fl_chart (charts).
+  Architecture: packages/grid_engine/ (pure Dart engine, no Flutter dependency) + app/ (Flutter UI).
+  Engine modules: GridBuilder, MarginCalculator, PnlCalculator, SurvivalEngine, ScenarioEngine, ReverseSolver, ConstraintEvaluator, GapAnalyzer.
+  Testing: 58+ engine unit tests (golden cases, edge cases, regression), no Flutter widget tests yet.
+  Build: GitHub Actions (debug APK, gradle direct, no EAS).
+  Monetization: AdMob (banner + interstitial + rewarded), test_ads flag in config.
+  Monitoring: Sentry SDK integrated.
+  Key conventions: Kebab-case filenames, Riverpod providers, Feature-first screen organization.
 
-# Per-artifact rules (optional)
-# Add custom rules for specific artifacts.
-# Example:
-#   rules:
-#     proposal:
-#       - Keep proposals under 500 words
-#       - Always include a "Non-goals" section
-#     tasks:
-#       - Break tasks into chunks of max 2 hours
+rules:
+  proposal:
+    - Include "Non-goals" section
+    - Reference existing engine modules that can be reused
+  tasks:
+    - Each task must have corresponding engine unit test
+    - Break tasks into single-PR chunks
+    - Mark completed tasks with test evidence
 
-# Per-operation guidance (optional)
-# Add advisory guidance for how apply and archive work should be conducted.
-# This is separate from artifact rules above.
-# Example:
-#   operations:
-#     apply:
-#       guidance:
-#         - Keep test summaries concise
-#     archive:
-#       guidance:
-#         - Summarize the archive outcome before finishing
+operations:
+  apply:
+    guidance:
+      - Run full engine test suite (dart test) after each change
+      - Verify no regression in existing 58+ tests
+  archive:
+    guidance:
+      - Summarize test results and files changed before archiving

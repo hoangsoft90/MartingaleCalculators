@@ -6,6 +6,7 @@ import '../models/grid_level.dart';
 import '../models/constraint_set.dart';
 import 'grid_builder.dart';
 import 'margin_calculator.dart';
+import 'pnl_calculator.dart';
 import 'constraint_evaluator.dart';
 
 /// Deterministic survival analysis.
@@ -168,21 +169,37 @@ class SurvivalEngine {
       }
 
       // Check constraints
-      double totalMargin = 0;
+      final totalMargin = MarginCalculator.totalMargin(levels, execution.hedgeMode);
       double totalLot = 0;
       for (final level in levels) {
-        totalMargin += level.requiredMargin;
         totalLot += level.roundedLot;
+      }
+
+      // Calculate worst-case floating P/L at adverse price
+      double worstCasePnl = 0;
+      double maxDrawdownPercent = 0;
+      if (levels.isNotEmpty && account.equity > 0) {
+        final worstPrice = testStrategy.direction == Direction.buy
+            ? levels.last.entryPrice
+            : levels.first.entryPrice;
+        worstCasePnl = PnlCalculator.calculateFloatingPnl(
+          levels: levels,
+          direction: testStrategy.direction,
+          instrument: instrument,
+          execution: execution,
+          assumedPrice: worstPrice,
+        );
+        maxDrawdownPercent = ((-worstCasePnl / account.equity) * 100).clamp(0, 100);
       }
 
       final constraintResults = ConstraintEvaluator.evaluate(
         constraints: constraints,
         account: account,
         levels: levels,
-        maxDrawdownPercent: 0,
+        maxDrawdownPercent: maxDrawdownPercent,
         totalExposureLots: totalLot,
         totalRequiredMargin: totalMargin,
-        totalFloatingPnl: 0,
+        totalFloatingPnl: worstCasePnl,
       );
 
       final firstViolation = constraintResults.firstWhere(

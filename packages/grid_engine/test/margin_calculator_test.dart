@@ -59,7 +59,7 @@ void main() {
           execution: execution,
         );
 
-        final total = MarginCalculator.totalMargin(levels);
+        final total = MarginCalculator.totalMargin(levels, HedgeMode.hedgingFull);
         expect(total, closeTo(19.76, 0.01));
       });
 
@@ -71,7 +71,7 @@ void main() {
           execution: execution,
         );
 
-        final free = MarginCalculator.freeMargin(account, levels);
+        final free = MarginCalculator.freeMargin(account, levels, HedgeMode.hedgingFull);
         expect(free, closeTo(10000 - 19.76, 0.01));
       });
     });

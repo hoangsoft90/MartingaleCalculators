@@ -32,28 +32,33 @@ class ScenarioEngine {
       leverage: 500,
     );
 
+    // Build grid ONCE at the original strategy price
+    final baseLevels = GridBuilder.build(
+      strategy: strategy,
+      instrument: instrument,
+      execution: execution,
+      currentPrice: currentPrice,
+    );
+
+    // Calculate margin once (doesn't change with price)
+    MarginCalculator.calculate(
+      levels: baseLevels,
+      account: scenarioAccount,
+      instrument: instrument,
+      execution: execution,
+    );
+
     for (double price = startPrice; price <= endPrice; price += step) {
       final offset = price - currentPrice;
 
-      // Build levels at this scenario price
-      final levels = GridBuilder.build(
-        strategy: strategy,
-        instrument: instrument,
-        execution: execution,
-        currentPrice: price,
-      );
+      // Count triggered levels at this scenario price using the static grid
+      final triggeredCount = baseLevels
+          .where((l) => GridBuilder.isTriggeredAtPrice(l, price, strategy.direction))
+          .length;
 
-      // Calculate margin for each level
-      MarginCalculator.calculate(
-        levels: levels,
-        account: scenarioAccount,
-        instrument: instrument,
-        execution: execution,
-      );
-
-      // Calculate floating P/L
+      // Calculate floating P/L at this price using the static grid
       final floatingPnl = PnlCalculator.calculateFloatingPnl(
-        levels: levels,
+        levels: baseLevels,
         direction: strategy.direction,
         instrument: instrument,
         execution: execution,
@@ -61,10 +66,7 @@ class ScenarioEngine {
       );
 
       // Calculate margin level
-      double totalMargin = 0;
-      for (final level in levels) {
-        totalMargin += level.requiredMargin;
-      }
+      final totalMargin = MarginCalculator.totalMargin(baseLevels, execution.hedgeMode);
       final equity = scenarioAccount.equity + floatingPnl;
       final marginLevel = totalMargin > 0
           ? (equity / totalMargin) * 100
@@ -78,7 +80,7 @@ class ScenarioEngine {
       scenarios.add(ScenarioPoint(
         priceOffset: offset,
         price: price,
-        triggeredLevels: levels.where((l) => l.isTriggered).length,
+        triggeredLevels: triggeredCount,
         drawdownPercent: drawdown.clamp(0, 100),
         marginLevelPercent: marginLevel,
         floatingPnl: floatingPnl,

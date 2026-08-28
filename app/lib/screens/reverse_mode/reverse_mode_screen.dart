@@ -74,6 +74,7 @@ class _ReverseModeScreenState extends ConsumerState<ReverseModeScreen> {
         execution: ref.read(executionSpecProvider),
         strategy: ref.read(strategySpecProvider),
         constraints: constraints,
+        currentPrice: ref.read(currentPriceProvider),
       );
 
       setState(() {

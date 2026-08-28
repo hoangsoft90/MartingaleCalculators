@@ -147,31 +147,18 @@ class _GapScenarioScreenState extends ConsumerState<GapScenarioScreen> {
                     ? ExecutionMode.atMarket
                     : ExecutionMode.sequential;
 
-                // Build levels for gap scenario
                 final execution = ref.read(executionSpecProvider).copyWith(
                   executionMode: executionMode,
                 );
 
-                final levels = GridBuilder.build(
+                // Run gap analysis via engine
+                final gapResult = GapAnalyzer.analyze(
                   strategy: strategy,
                   instrument: instrument,
                   execution: execution,
                   currentPrice: currentPrice,
+                  gapPrice: gapPrice,
                 );
-
-                // Find levels that would be triggered in the gap
-                final triggeredLevels = <GridLevel>[];
-                for (final level in levels) {
-                  if (strategy.direction == Direction.buy) {
-                    if (level.entryPrice >= gapPrice) {
-                      triggeredLevels.add(level);
-                    }
-                  } else {
-                    if (level.entryPrice <= gapPrice) {
-                      triggeredLevels.add(level);
-                    }
-                  }
-                }
 
                 return Card(
                   child: Padding(
@@ -192,9 +179,17 @@ class _GapScenarioScreenState extends ConsumerState<GapScenarioScreen> {
                         const Divider(),
                         _resultRow(
                           'Levels Triggered',
-                          '${triggeredLevels.length} / ${strategy.levels}',
+                          '${gapResult.triggeredCount} / ${gapResult.totalLevels}',
                         ),
-                        if (triggeredLevels.isNotEmpty) ...[
+                        _resultRow(
+                          'Floating P/L',
+                          '\$${gapResult.floatingPnl.toStringAsFixed(2)}',
+                        ),
+                        _resultRow(
+                          'Margin Level',
+                          '${gapResult.marginLevelPercent.toStringAsFixed(1)}%',
+                        ),
+                        if (gapResult.triggeredCount > 0) ...[
                           const SizedBox(height: 8),
                           Text(
                             'Triggered Levels:',
@@ -202,13 +197,14 @@ class _GapScenarioScreenState extends ConsumerState<GapScenarioScreen> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          ...triggeredLevels.map((l) => Padding(
-                            padding: const EdgeInsets.only(left: 16, top: 4),
-                            child: Text(
-                              'Level ${l.index}: ${l.roundedLot.toStringAsFixed(2)} lots @ \$${l.entryPrice.toStringAsFixed(2)}',
-                              style: const TextStyle(fontSize: 13),
+                          for (int i = 0; i < gapResult.triggeredCount; i++)
+                            Padding(
+                              padding: const EdgeInsets.only(left: 16, top: 4),
+                              child: Text(
+                                'Level ${i + 1}: ${gapResult.triggeredLots[i].toStringAsFixed(2)} lots @ \$${gapResult.effectiveEntryPrices[i].toStringAsFixed(2)}',
+                                style: const TextStyle(fontSize: 13),
+                              ),
                             ),
-                          )),
                         ],
                       ],
                     ),

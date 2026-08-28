@@ -39,11 +39,12 @@ class _WhatIfScreenState extends ConsumerState<WhatIfScreen> {
     final execution = ref.read(executionSpecProvider);
     final account = ref.read(accountSpecProvider);
 
+    // Build grid ONCE at the original strategy price (not at slider price)
     final levels = GridBuilder.build(
       strategy: strategy,
       instrument: instrument,
       execution: execution,
-      currentPrice: price,
+      currentPrice: _currentPrice,
     );
 
     MarginCalculator.calculate(
@@ -53,6 +54,11 @@ class _WhatIfScreenState extends ConsumerState<WhatIfScreen> {
       execution: execution,
     );
 
+    // Count triggered levels at the slider price using the static grid
+    final triggeredCount = levels
+        .where((l) => GridBuilder.isTriggeredAtPrice(l, price, strategy.direction))
+        .length;
+
     final floatingPnl = PnlCalculator.calculateFloatingPnl(
       levels: levels,
       direction: strategy.direction,
@@ -61,10 +67,7 @@ class _WhatIfScreenState extends ConsumerState<WhatIfScreen> {
       assumedPrice: price,
     );
 
-    double totalMargin = 0;
-    for (final level in levels) {
-      totalMargin += level.requiredMargin;
-    }
+    final totalMargin = MarginCalculator.totalMargin(levels, execution.hedgeMode);
 
     final equity = account.equity + floatingPnl;
     final marginLevel = totalMargin > 0
@@ -78,11 +81,78 @@ class _WhatIfScreenState extends ConsumerState<WhatIfScreen> {
     return ScenarioPoint(
       priceOffset: price - _currentPrice,
       price: price,
-      triggeredLevels: levels.where((l) => l.isTriggered).length,
+      triggeredLevels: triggeredCount,
       drawdownPercent: drawdown.clamp(0, 100),
       marginLevelPercent: marginLevel,
       floatingPnl: floatingPnl,
       constraintsAllPassed: true,
+    );
+  }
+
+  List<ConstraintCheckResult> _evaluateConstraintsAtPrice(double price) {
+    final strategy = ref.read(strategySpecProvider);
+    final instrument = ref.read(instrumentSpecProvider);
+    final execution = ref.read(executionSpecProvider);
+    final account = ref.read(accountSpecProvider);
+    final constraints = ref.read(constraintSetProvider);
+
+    if (!constraints.hasAny) return [];
+
+    // Build grid at original price (static)
+    final levels = GridBuilder.build(
+      strategy: strategy,
+      instrument: instrument,
+      execution: execution,
+      currentPrice: _currentPrice,
+    );
+
+    MarginCalculator.calculate(
+      levels: levels,
+      account: account,
+      instrument: instrument,
+      execution: execution,
+    );
+
+    // Calculate metrics at slider price
+    final floatingPnl = PnlCalculator.calculateFloatingPnl(
+      levels: levels,
+      direction: strategy.direction,
+      instrument: instrument,
+      execution: execution,
+      assumedPrice: price,
+    );
+
+    final totalMargin = MarginCalculator.totalMargin(levels, execution.hedgeMode);
+    double totalLot = 0;
+    for (final level in levels) {
+      totalLot += level.roundedLot;
+    }
+
+    // Calculate worst-case DD at slider price
+    double worstCasePnl = 0;
+    double maxDrawdownPercent = 0;
+    if (account.equity > 0 && levels.isNotEmpty) {
+      final worstPrice = strategy.direction == Direction.buy
+          ? levels.last.entryPrice
+          : levels.first.entryPrice;
+      worstCasePnl = PnlCalculator.calculateFloatingPnl(
+        levels: levels,
+        direction: strategy.direction,
+        instrument: instrument,
+        execution: execution,
+        assumedPrice: worstPrice,
+      );
+      maxDrawdownPercent = ((-worstCasePnl / account.equity) * 100).clamp(0, 100);
+    }
+
+    return ConstraintEvaluator.evaluate(
+      constraints: constraints,
+      account: account,
+      levels: levels,
+      maxDrawdownPercent: maxDrawdownPercent,
+      totalExposureLots: totalLot,
+      totalRequiredMargin: totalMargin,
+      totalFloatingPnl: worstCasePnl,
     );
   }
 
@@ -110,7 +180,6 @@ class _WhatIfScreenState extends ConsumerState<WhatIfScreen> {
     final strategy = ref.watch(strategySpecProvider);
     final instrument = ref.watch(instrumentSpecProvider);
     final scenario = _calculateScenario(_sliderValue);
-    final result = ref.watch(calculationResultProvider);
 
     return SafeScaffold(
       title: 'What-if Analysis',
@@ -274,14 +343,14 @@ class _WhatIfScreenState extends ConsumerState<WhatIfScreen> {
 
                 const Divider(height: 32),
 
-                // Constraint status
-                if (result != null && result.constraintResults.isNotEmpty) ...[
+                // Constraint status — re-evaluated at slider price
+                if (_evaluateConstraintsAtPrice(_sliderValue).isNotEmpty) ...[
                   Text(
-                    'Constraint Status',
+                    'Constraint Status at \$${_sliderValue.toStringAsFixed(2)}',
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
                   const SizedBox(height: 8),
-                  ...result.constraintResults.map((cr) => ListTile(
+                  ..._evaluateConstraintsAtPrice(_sliderValue).map((cr) => ListTile(
                     leading: Icon(
                       cr.passed ? Icons.check_circle : Icons.cancel,
                       color: cr.passed ? Colors.green : Colors.red,

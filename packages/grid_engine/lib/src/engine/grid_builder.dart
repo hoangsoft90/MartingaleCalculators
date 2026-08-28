@@ -74,7 +74,7 @@ class GridBuilder {
         entryPrice: entryPrice,
         cumulativeLot: cumulativeLot,
         requiredMargin: 0, // Calculated by MarginCalculator
-        isTriggered: true, // All configured levels are triggered at full range
+        isTriggered: true, // All configured levels are potential positions
       ));
 
       previousMidPrice = midPrice;
@@ -149,7 +149,7 @@ class GridBuilder {
       existingEntryPrice = currentPrice;
     }
 
-    // Create synthetic Level 0
+    // Create synthetic Level 0 — always triggered (existing open position)
     levels.add(GridLevel(
       index: 0,
       rawLot: existingTotalLots,
@@ -157,7 +157,7 @@ class GridBuilder {
       entryPrice: existingEntryPrice,
       cumulativeLot: existingTotalLots,
       requiredMargin: 0, // Will be calculated by MarginCalculator
-      isTriggered: true,
+      isTriggered: true, // Existing position is always active
     ));
 
     // Build remaining levels starting from Level 1
@@ -177,6 +177,25 @@ class GridBuilder {
     }
 
     return levels;
+  }
+
+  /// Check if a level is triggered at a given price.
+  ///
+  /// A level is triggered when the price has moved past its entry
+  /// in the adverse direction:
+  /// - BUY grid: triggered when price ≤ entryPrice (price dropped to/below entry)
+  /// - SELL grid: triggered when price ≥ entryPrice (price rose to/above entry)
+  static bool isTriggeredAtPrice(
+    GridLevel level,
+    double assumedPrice,
+    Direction direction,
+  ) {
+    switch (direction) {
+      case Direction.buy:
+        return assumedPrice <= level.entryPrice;
+      case Direction.sell:
+        return assumedPrice >= level.entryPrice;
+    }
   }
 
   /// Integer power (avoids floating-point math.pow for small exponents).

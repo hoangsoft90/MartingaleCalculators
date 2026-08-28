@@ -300,6 +300,7 @@ void main() {
           execution: execution,
           strategy: strategy,
           constraints: constraints,
+          currentPrice: (input['currentPrice'] as num).toDouble(),
         );
 
         // Result must be within lot bounds
@@ -381,10 +382,13 @@ CalculationResult _runEngine(Map<String, dynamic> c) {
     basketBreakevenPrice: basketBreakeven,
   );
 
-  double totalMargin = 0;
+  final hedgeMode = HedgeMode.values.firstWhere(
+    (e) => e.name == (input['execution']['hedgeMode'] as String? ?? 'hedgingFull'),
+    orElse: () => HedgeMode.hedgingFull,
+  );
+  final totalMargin = MarginCalculator.totalMargin(levels, hedgeMode);
   double totalLot = 0;
   for (final level in levels) {
-    totalMargin += level.requiredMargin;
     totalLot += level.roundedLot;
   }
 
