@@ -108,6 +108,41 @@ currentPrice: ref.read(currentPriceProvider),
 
 **Bài học**: `currentPrice` là input bắt buộc cho grid calculation. Không bao giờ hardcode `0` hay bất kỳ giá nào.
 
+## 8. GapAnalyzer phải ở engine layer để test được
+
+```
+# SAI — logic gap scenario trong UI:
+final triggeredLevels = <GridLevel>[];
+for (final level in levels) {
+  if (level.entryPrice >= gapPrice) triggeredLevels.add(level);
+}
+// Không test được!
+
+# ĐÚNG — tách thành engine module:
+class GapAnalyzer {
+  static GapAnalysisResult analyze({...}) { ... }
+}
+// Test được, tái sử dụng được
+```
+
+**Bài học**: Khi logic phức tạp (nhiều điều kiện, nhiều mode), tách thành engine module thay vì để trong UI.
+
+## 9. isTriggeredAlwaysTrue vs isTriggeredAtPrice
+
+```
+# GridBuilder.build()设置 isTriggered: true cho TẤT CẢ levels
+# → PnlCalculator dùng isTriggered để filter → backward compat
+
+# But what-if cần dynamic count:
+GridBuilder.isTriggeredAtPrice(level, price, direction)
+// BUY: price <= entryPrice
+// SELL: price >= entryPrice
+```
+
+**Bài học**: Hai khái niệm khác nhau:
+- `level.isTriggered` = static, backward compat cho PnL
+- `isTriggeredAtPrice()` = dynamic, cho what-if/gap analysis
+
 ## Checklist trước khi merge engine change
 
 1. ✅ Không có hardcoded `0` hay placeholder cho calculation values
@@ -116,4 +151,6 @@ currentPrice: ref.read(currentPriceProvider),
 4. ✅ Constraint evaluation tại giá đang xem (nếu liên quan what-if)
 5. ✅ Logic tính toán ở engine layer, có unit test
 6. ✅ `currentPrice` truyền từ UI, không hardcode
-7. ✅ Chạy `dart test` từ `packages/grid_engine/` — tất cả pass
+7. ✅ Gap scenario logic ở engine layer (GapAnalyzer), không ở UI
+8. ✅ Phân biệt `isTriggered` (static) vs `isTriggeredAtPrice` (dynamic)
+9. ✅ Chạy `dart test` từ `packages/grid_engine/` — tất cả pass

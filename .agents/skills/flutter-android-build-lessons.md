@@ -63,7 +63,29 @@ path: app/build/app/outputs/bundle/release/app-release.aab
 
 **Quy tắc**: `flutter build` output nằm trong `build/` của flutter project. Từ repo root: `<flutter-project-dir>/build/app/outputs/...`
 
-## 5. GitHub Secrets cho keystore
+## 5. Nâng targetSdk/compileSdk — Compatibility Chain
+
+Khi nâng targetSdk phải kiểm tra TOÀN BỘ chain:
+
+```
+targetSdk 36 yêu cầu:
+├── compileSdk ≥ 36
+├── AGP (Android Gradle Plugin) ≥ 8.7.0
+├── Kotlin ≥ 1.9.0 (đã OK)
+├── Java 17 (đã OK)
+└── Flutter SDK tương thích
+```
+
+**Checkpoint trước khi nâng:**
+1. ✅ `compileSdk = 36` trong `build.gradle.kts`
+2. ✅ `targetSdk = 36` trong `build.gradle.kts`
+3. ✅ AGP version ≥ 8.7.0 trong `settings.gradle.kts`
+4. ✅ `flutter.targetSdkVersion` KHÔNG override được → phải set cứng
+5. ✅ Test build trên CI TRƯỚC KHI merge
+
+**Google Play deadline**: API 36 yêu cầu từ 31/8/2026. Nếu chưa upgrade = không upload được.
+
+## 6. GitHub Secrets cho keystore
 
 ```yaml
 # Decode keystore từ base64 secret:
@@ -78,11 +100,24 @@ gh secret set KEY_PASSWORD --body "83793900"
 
 **Lưu ý**: Keystore file KHÔNG nên commit vào repo. Chỉ lưu dưới dạng base64 secret.
 
-## 6. Checklist trước khi build release
+## 7. Checklist trước khi build release
 
 1. ✅ `build.gradle.kts` có `signingConfigs.create("release")` với env vars
 2. ✅ `buildTypes.release.signingConfig = signingConfigs.getByName("release")`
-3. ✅ `proguard-rules.pro` có đủ keep rules cho Flutter + Ads + Sentry
-4. ✅ GitHub secrets đã set: `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`
-5. ✅ Artifact upload path đúng: `<flutter-dir>/build/app/outputs/bundle/release/app-release.aab`
-6. ✅ Keystore KHÔNG nằm trong `.gitignore` (nếu cần commit) hoặc đã decode từ secret
+3. ✅ `compileSdk` và `targetSdk` đúng version yêu cầu
+4. ✅ AGP version trong `settings.gradle.kts` tương thích với compileSdk
+5. ✅ `proguard-rules.pro` có đủ keep rules cho Flutter + Ads + Sentry
+6. ✅ GitHub secrets đã set: `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`
+7. ✅ Artifact upload path đúng: `<flutter-dir>/build/app/outputs/bundle/release/app-release.aab`
+8. ✅ Keystore KHÔNG nằm trong `.gitignore` (nếu cần commit) hoặc đã decode từ secret
+
+## 8. Version Compatibility Matrix
+
+| Component | Current | Minimum for API 36 | Location |
+|-----------|---------|-------------------|----------|
+| compileSdk | 36 | 36 | `app/build.gradle.kts` |
+| targetSdk | 36 | 36 | `app/build.gradle.kts` |
+| AGP | 8.7.0 | 8.7.0 | `settings.gradle.kts` |
+| Kotlin | 1.9.0 | 1.9.0 | `settings.gradle.kts` |
+| Java | 17 | 17 | `build.gradle.kts` |
+| Flutter | 3.24.0 | 3.22+ | `.github/workflows/*.yml` |
