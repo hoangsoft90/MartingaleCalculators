@@ -44,12 +44,7 @@ jobs:
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > app/android/app/release-keystore.jks
 
       - name: Build release AAB
-        run: |
-          cd app && flutter build appbundle --release \
-            --release-key-store=release-keystore.jks \
-            --release-key-password=${{ secrets.KEY_PASSWORD }} \
-            --release-key-alias=${{ secrets.KEY_ALIAS }} \
-            --release-store-password=${{ secrets.KEYSTORE_PASSWORD }}
+        run: cd app && flutter build appbundle --release
         env:
           KEYSTORE_FILE: release-keystore.jks
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
