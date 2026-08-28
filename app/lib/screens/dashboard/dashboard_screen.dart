@@ -67,8 +67,11 @@ class DashboardScreen extends ConsumerWidget {
                   levels: result.levels,
                   maxDrawdownPercent: result.maxDrawdownPercent,
                   totalExposureLots: result.totalExposureLots,
-                  totalRequiredMargin: result.totalExposureLots * 100, // Simplified
+                  totalRequiredMargin: result.totalRequiredMargin,
                   totalFloatingPnl: 0,
+                  instrument: ref.read(instrumentSpecProvider),
+                  execution: ref.read(executionSpecProvider),
+                  strategy: ref.read(strategySpecProvider),
                 );
                 if (violation != null) {
                   return Padding(
@@ -153,6 +156,24 @@ class DashboardScreen extends ConsumerWidget {
               dense: true,
             )),
             const Divider(),
+          ] else ...[
+            // No constraints set
+            Card(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              child: ListTile(
+                leading: Icon(Icons.info_outline, color: Colors.grey[500]),
+                title: Text(
+                  'No risk constraints set',
+                  style: TextStyle(color: Colors.grey[600]),
+                ),
+                subtitle: Text(
+                  'Add constraints in Quick Calculator → Risk Constraints to validate your strategy.',
+                  style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                ),
+                dense: true,
+              ),
+            ),
+            const SizedBox(height: 8),
           ],
 
           // Basket TP Table

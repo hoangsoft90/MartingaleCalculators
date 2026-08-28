@@ -113,8 +113,8 @@ class _QuickCalculatorScreenState extends ConsumerState<QuickCalculatorScreen> {
       maxLossAmount: double.tryParse(_maxLossController.text),
     );
 
-    // Navigate to dashboard
-    Navigator.push(
+    // Navigate to dashboard (replace so back button returns to home)
+    Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (_) => const DashboardScreen()),
     );

@@ -419,6 +419,7 @@ CalculationResult _runEngine(Map<String, dynamic> c) {
     survivableLevels: survival.survivableLevels,
     estimatedStopOutPrice: survival.estimatedStopOutPrice,
     maxDrawdownPercent: maxDD,
+    totalRequiredMargin: totalMargin,
     constraintResults: [],
     assumptionsUsed: [],
   );

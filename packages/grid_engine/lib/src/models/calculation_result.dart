@@ -29,6 +29,9 @@ class CalculationResult {
   /// Maximum drawdown percentage observed.
   final double maxDrawdownPercent;
 
+  /// Total required margin across all levels (in account currency).
+  final double totalRequiredMargin;
+
   /// Results of constraint checks.
   final List<ConstraintCheckResult> constraintResults;
 
@@ -44,6 +47,7 @@ class CalculationResult {
     required this.survivableLevels,
     this.estimatedStopOutPrice,
     required this.maxDrawdownPercent,
+    required this.totalRequiredMargin,
     required this.constraintResults,
     required this.assumptionsUsed,
   });

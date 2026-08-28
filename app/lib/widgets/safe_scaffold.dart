@@ -46,10 +46,6 @@ class SafeScaffold extends StatelessWidget {
         if (!didPop && onPopInvoked != null) {
           onPopInvoked!();
         }
-        // Handle web back button
-        if (!didPop) {
-          Navigator.of(context).pop();
-        }
       },
       child: Scaffold(
         appBar: title != null

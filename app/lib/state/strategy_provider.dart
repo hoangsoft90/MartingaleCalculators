@@ -110,16 +110,24 @@ final calculationResultProvider = Provider<CalculationResult?>((ref) {
   }
 
   // Calculate max drawdown: worst-case loss when all levels trigger
+  // BUY grid → worst case at LOWEST price (levels.last entry)
+  // SELL grid → worst case at HIGHEST price (levels.first entry)
   double maxDrawdownPercent = 0;
   if (account.equity > 0) {
+    double worstCasePrice;
+    if (levels.isNotEmpty) {
+      worstCasePrice = strategy.direction == Direction.buy
+          ? levels.last.entryPrice   // BUY: price drops → last level triggers
+          : levels.first.entryPrice; // SELL: price rises → first level is worst
+    } else {
+      worstCasePrice = currentPrice;
+    }
     final worstCasePnl = PnlCalculator.calculateFloatingPnl(
       levels: levels,
       direction: strategy.direction,
       instrument: instrument,
       execution: execution,
-      assumedPrice: strategy.direction == Direction.buy
-          ? (levels.isNotEmpty ? levels.last.entryPrice : currentPrice)
-          : (levels.isNotEmpty ? levels.last.entryPrice : currentPrice),
+      assumedPrice: worstCasePrice,
     );
     final worstDrawdown = (-worstCasePnl / account.equity) * 100;
     maxDrawdownPercent = worstDrawdown.clamp(0, 100);
@@ -147,6 +155,7 @@ final calculationResultProvider = Provider<CalculationResult?>((ref) {
     survivableLevels: survival.survivableLevels,
     estimatedStopOutPrice: survival.estimatedStopOutPrice,
     maxDrawdownPercent: maxDrawdownPercent,
+    totalRequiredMargin: totalMargin,
     constraintResults: constraintResults,
     assumptionsUsed: [
       'Spread: ${execution.spreadPoints} points (user-defined)',

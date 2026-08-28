@@ -128,16 +128,18 @@ class _PriceLadderChart extends StatelessWidget {
       breakeven,
       if (stopOut != null) stopOut!,
     ];
+    if (allPrices.isEmpty) return const Center(child: Text('No price data'));
     final minPrice = allPrices.reduce((a, b) => a < b ? a : b);
     final maxPrice = allPrices.reduce((a, b) => a > b ? a : b);
-    final padding = (maxPrice - minPrice) * 0.15;
+    final priceRange = (maxPrice - minPrice);
+    final padding = priceRange > 0 ? priceRange * 0.15 : maxPrice * 0.01;
 
     return LineChart(
       LineChartData(
         gridData: FlGridData(
           show: true,
           drawVerticalLine: false,
-          horizontalInterval: (maxPrice - minPrice) / 10,
+          horizontalInterval: priceRange > 0 ? priceRange / 10 : 1.0,
           getDrawingHorizontalLine: (value) => FlLine(
             color: Colors.grey.shade300,
             strokeWidth: 0.5,

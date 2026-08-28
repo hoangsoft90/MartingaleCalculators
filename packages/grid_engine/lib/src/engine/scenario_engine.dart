@@ -22,10 +22,15 @@ class ScenarioEngine {
     required double currentPrice,
     required double step,
     required double range,
+    AccountSpec? account,
   }) {
     final scenarios = <ScenarioPoint>[];
     final startPrice = currentPrice - range;
     final endPrice = currentPrice + range;
+    final scenarioAccount = account ?? const AccountSpec(
+      balance: 10000,
+      leverage: 500,
+    );
 
     for (double price = startPrice; price <= endPrice; price += step) {
       final offset = price - currentPrice;
@@ -39,14 +44,9 @@ class ScenarioEngine {
       );
 
       // Calculate margin for each level
-      final account = AccountSpec(
-        balance: 10000, // Placeholder for scenario calculation
-        equity: 10000,
-        leverage: 500,
-      );
       MarginCalculator.calculate(
         levels: levels,
-        account: account,
+        account: scenarioAccount,
         instrument: instrument,
         execution: execution,
       );
@@ -65,14 +65,14 @@ class ScenarioEngine {
       for (final level in levels) {
         totalMargin += level.requiredMargin;
       }
-      final equity = account.equity + floatingPnl;
+      final equity = scenarioAccount.equity + floatingPnl;
       final marginLevel = totalMargin > 0
           ? (equity / totalMargin) * 100
           : double.infinity;
 
       // Calculate drawdown
-      final drawdown = account.equity > 0
-          ? ((account.equity - equity) / account.equity) * 100
+      final drawdown = scenarioAccount.equity > 0
+          ? ((scenarioAccount.equity - equity) / scenarioAccount.equity) * 100
           : 0.0;
 
       scenarios.add(ScenarioPoint(

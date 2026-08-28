@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:grid_engine/grid_engine.dart';
@@ -16,6 +17,7 @@ class _WhatIfScreenState extends ConsumerState<WhatIfScreen> {
   late double _currentPrice;
   bool _inspectorVisible = false;
   final _inspectorController = TextEditingController();
+  Timer? _debounce;
 
   @override
   void initState() {
@@ -26,6 +28,7 @@ class _WhatIfScreenState extends ConsumerState<WhatIfScreen> {
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _inspectorController.dispose();
     super.dispose();
   }
@@ -195,7 +198,12 @@ class _WhatIfScreenState extends ConsumerState<WhatIfScreen> {
               divisions: 200,
               label: '\$${_sliderValue.toStringAsFixed(2)}',
               onChanged: (value) {
+                // Debounce: update display immediately, recalculate after 50ms idle
                 setState(() => _sliderValue = value);
+                _debounce?.cancel();
+                _debounce = Timer(const Duration(milliseconds: 50), () {
+                  if (mounted) setState(() {});
+                });
               },
             ),
           ),

@@ -1,6 +1,9 @@
 import '../models/account_spec.dart';
 import '../models/constraint_set.dart';
 import '../models/grid_level.dart';
+import '../models/instrument_spec.dart';
+import '../models/execution_spec.dart';
+import '../models/strategy_spec.dart';
 
 /// Evaluates user-defined risk constraints against calculation results.
 ///
@@ -105,6 +108,9 @@ class ConstraintEvaluator {
     required double totalExposureLots,
     required double totalRequiredMargin,
     required double totalFloatingPnl,
+    InstrumentSpec? instrument,
+    ExecutionSpec? execution,
+    StrategySpec? strategy,
   }) {
     final results = evaluate(
       constraints: constraints,
@@ -124,7 +130,10 @@ class ConstraintEvaluator {
 
         switch (result.constraintName) {
           case 'Max Drawdown':
-            violatedLevel = _findDrawdownViolationLevel(levels, account);
+            violatedLevel = _findDrawdownViolationLevel(
+              levels, account,
+              instrument: instrument, execution: execution, strategy: strategy,
+            );
             excess = maxDrawdownPercent - (constraints.maxDrawdownPercent ?? 0);
             break;
           case 'Max Total Lot':
@@ -134,6 +143,7 @@ class ConstraintEvaluator {
           case 'Min Margin Level':
             violatedLevel = _findMarginLevelViolationLevel(
               levels, account, totalRequiredMargin, totalFloatingPnl,
+              constraints.minMarginLevelPercent ?? 0,
             );
             final equity = account.equity + totalFloatingPnl;
             final marginLevel = totalRequiredMargin > 0
@@ -144,6 +154,7 @@ class ConstraintEvaluator {
           case 'Max Loss':
             violatedLevel = _findLossViolationLevel(
               levels, account, constraints.maxLossAmount ?? 0,
+              instrument: instrument, execution: execution, strategy: strategy,
             );
             excess = totalFloatingPnl.abs() - (constraints.maxLossAmount ?? 0);
             break;
@@ -178,14 +189,48 @@ class ConstraintEvaluator {
   }
 
   /// Find the level where drawdown first exceeds the constraint.
+  ///
+  /// Incrementally builds the grid up to each level and checks if
+  /// the cumulative margin level drops below stop-out.
   static int? _findDrawdownViolationLevel(
     List<GridLevel> levels,
-    AccountSpec account,
-  ) {
+    AccountSpec account, {
+    InstrumentSpec? instrument,
+    ExecutionSpec? execution,
+    StrategySpec? strategy,
+  }) {
     if (levels.isEmpty || account.equity <= 0) return null;
+
+    // If we have full context, calculate actual margin level at each step
+    if (instrument != null && execution != null && strategy != null) {
+      double cumulativeMargin = 0;
+      for (int i = 0; i < levels.length; i++) {
+        cumulativeMargin += levels[i].requiredMargin;
+        // Approximate floating PnL at this level's entry price
+        final directionSign = strategy.direction == Direction.buy ? 1.0 : -1.0;
+        double floatingPnl = 0;
+        for (int j = 0; j <= i; j++) {
+          final closePrice = levels[i].entryPrice;
+          floatingPnl += (closePrice - levels[j].entryPrice) *
+              directionSign * instrument.contractSize * levels[j].roundedLot;
+        }
+        final equity = account.equity + floatingPnl;
+        final marginLevel = cumulativeMargin > 0
+            ? (equity / cumulativeMargin) * 100
+            : double.infinity;
+        if (marginLevel <= account.stopOutLevelPercent) {
+          return i + 1;
+        }
+      }
+    }
+
+    // Fallback: use equity ratio (simplified but better than hardcoded 50%)
+    double cumulativeMargin = 0;
     for (int i = 0; i < levels.length; i++) {
-      final dd = ((i + 1) / levels.length) * 100;
-      if (dd > 50) return i + 1; // Simplified threshold
+      cumulativeMargin += levels[i].requiredMargin;
+      if (account.equity < cumulativeMargin) {
+        return i + 1;
+      }
     }
     return null;
   }
@@ -204,27 +249,54 @@ class ConstraintEvaluator {
     AccountSpec account,
     double totalRequiredMargin,
     double totalFloatingPnl,
+    double minMarginLevel,
   ) {
     if (levels.isEmpty) return null;
+    // Use the user-defined constraint, not hardcoded 100
+    final threshold = minMarginLevel > 0 ? minMarginLevel : 100;
+    double cumulativeMargin = 0;
     for (int i = 0; i < levels.length; i++) {
+      cumulativeMargin += levels[i].requiredMargin;
       final equity = account.equity + totalFloatingPnl * ((i + 1) / levels.length);
-      final marginLevel = totalRequiredMargin > 0
-          ? (equity / totalRequiredMargin) * 100
+      final marginLevel = cumulativeMargin > 0
+          ? (equity / cumulativeMargin) * 100
           : double.infinity;
-      if (marginLevel < 100) return i + 1; // Below 100% margin level
+      if (marginLevel < threshold) return i + 1;
     }
     return null;
   }
 
   /// Find the level where loss first exceeds the constraint.
+  ///
+  /// Estimates loss using price at the current level as adverse price.
   static int? _findLossViolationLevel(
     List<GridLevel> levels,
     AccountSpec account,
-    double maxLoss,
-  ) {
-    if (levels.isEmpty) return null;
+    double maxLoss, {
+    InstrumentSpec? instrument,
+    ExecutionSpec? execution,
+    StrategySpec? strategy,
+  }) {
+    if (levels.isEmpty || maxLoss <= 0) return null;
+
+    if (instrument != null && execution != null && strategy != null) {
+      final directionSign = strategy.direction == Direction.buy ? 1.0 : -1.0;
+      for (int i = 0; i < levels.length; i++) {
+        double cumulativeLoss = 0;
+        for (int j = 0; j <= i; j++) {
+          final closePrice = levels[i].entryPrice;
+          final pnl = (closePrice - levels[j].entryPrice) *
+              directionSign * instrument.contractSize * levels[j].roundedLot;
+          cumulativeLoss += pnl.abs();
+        }
+        if (cumulativeLoss > maxLoss) return i + 1;
+      }
+    }
+
+    // Fallback: rough estimate using cumulative notional
     for (int i = 0; i < levels.length; i++) {
-      final estimatedLoss = levels[i].cumulativeLot * 100; // Simplified
+      final notional = levels[i].cumulativeLot * (instrument?.contractSize ?? 100) * levels[i].entryPrice;
+      final estimatedLoss = notional * 0.1; // ~10% adverse move as rough estimate
       if (estimatedLoss > maxLoss) return i + 1;
     }
     return null;

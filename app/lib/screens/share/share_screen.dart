@@ -18,14 +18,20 @@ class ShareScreen extends ConsumerStatefulWidget {
 class _ShareScreenState extends ConsumerState<ShareScreen> {
   final _screenshotController = ScreenshotController();
 
-  Future<void> _shareImage(InstrumentSpec instrument) async {
+  Future<void> _shareImage(InstrumentSpec instrument, BuildContext context) async {
     final image = await _screenshotController.capture();
     if (image != null && mounted) {
       final tempDir = await getTemporaryDirectory();
       final file = await File('${tempDir.path}/grid_result.png').writeAsBytes(image);
+      // Get share position for iPad/tablet (required or crashes)
+      final box = context.findRenderObject() as RenderBox?;
+      final shareOrigin = box != null
+          ? box.localToGlobal(Offset.zero) & box.size
+          : Rect.zero;
       await Share.shareXFiles(
         [XFile(file.path)],
         text: 'Grid Survival Simulator - ${instrument.symbol}',
+        sharePositionOrigin: shareOrigin,
       );
     }
   }
@@ -49,7 +55,7 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
       actions: [
         IconButton(
           icon: const Icon(Icons.share),
-          onPressed: () => _shareImage(instrument),
+          onPressed: () => _shareImage(instrument, context),
         ),
       ],
       body: ListView(
@@ -150,7 +156,7 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
 
           // Share button
           FilledButton.icon(
-            onPressed: () => _shareImage(instrument),
+            onPressed: () => _shareImage(instrument, context),
             icon: const Icon(Icons.share),
             label: const Text('Share as Image'),
             style: FilledButton.styleFrom(
