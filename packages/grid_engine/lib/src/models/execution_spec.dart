@@ -11,6 +11,15 @@ enum HedgeMode {
   hedgingReduced,
 }
 
+/// Execution mode for gap scenarios.
+enum ExecutionMode {
+  /// Each level triggers sequentially as price moves through it.
+  sequential,
+
+  /// All levels in a gap range trigger at the same price (market gap).
+  atMarket,
+}
+
 /// Execution costs and hedge configuration.
 class ExecutionSpec {
   /// Spread in points (applied to entry/close price).
@@ -31,6 +40,9 @@ class ExecutionSpec {
   /// Factor for hedged margin (0.0–1.0), only used with hedgingReduced.
   final double hedgedMarginFactor;
 
+  /// Execution mode for gap scenarios.
+  final ExecutionMode executionMode;
+
   const ExecutionSpec({
     this.spreadPoints = 30,
     this.commissionPerLot = 0,
@@ -38,6 +50,7 @@ class ExecutionSpec {
     this.holdingDays = 0,
     this.hedgeMode = HedgeMode.hedgingFull,
     this.hedgedMarginFactor = 0.5,
+    this.executionMode = ExecutionMode.sequential,
   });
 
   ExecutionSpec copyWith({
@@ -47,6 +60,7 @@ class ExecutionSpec {
     int? holdingDays,
     HedgeMode? hedgeMode,
     double? hedgedMarginFactor,
+    ExecutionMode? executionMode,
   }) {
     return ExecutionSpec(
       spreadPoints: spreadPoints ?? this.spreadPoints,
@@ -55,6 +69,7 @@ class ExecutionSpec {
       holdingDays: holdingDays ?? this.holdingDays,
       hedgeMode: hedgeMode ?? this.hedgeMode,
       hedgedMarginFactor: hedgedMarginFactor ?? this.hedgedMarginFactor,
+      executionMode: executionMode ?? this.executionMode,
     );
   }
 }

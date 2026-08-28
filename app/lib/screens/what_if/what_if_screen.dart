@@ -111,6 +111,7 @@ class _WhatIfScreenState extends ConsumerState<WhatIfScreen> {
 
     return SafeScaffold(
       title: 'What-if Analysis',
+      showBannerAd: false,
       actions: [
         IconButton(
           icon: const Icon(Icons.edit_location),

@@ -102,6 +102,83 @@ class GridBuilder {
     }
   }
 
+  /// Build grid levels with an existing open position (synthetic Level 0).
+  ///
+  /// Creates a synthetic Level 0 representing the current open position,
+  /// then builds the remaining grid levels normally. The equity is used
+  /// as the baseline for all calculations.
+  ///
+  /// When [existingEquity], [existingFloatingPnl], and [existingTotalLots]
+  /// are all 0 or null, the result is identical to [build] (backward-compatible).
+  static List<GridLevel> buildWithExistingExposure({
+    required StrategySpec strategy,
+    required InstrumentSpec instrument,
+    required ExecutionSpec execution,
+    required double currentPrice,
+    double existingEquity = 0,
+    double existingFloatingPnl = 0,
+    double existingTotalLots = 0,
+    List<String>? warnings,
+  }) {
+    final levels = <GridLevel>[];
+
+    // If no existing exposure, delegate to normal build
+    if (existingTotalLots <= 0) {
+      return build(
+        strategy: strategy,
+        instrument: instrument,
+        execution: execution,
+        currentPrice: currentPrice,
+        warnings: warnings,
+      );
+    }
+
+    // Calculate entry price from floating P/L
+    // floatingPnl = (closePrice - entryPrice) * direction * contractSize * totalLots
+    // entryPrice = closePrice - floatingPnl / (direction * contractSize * totalLots)
+    final directionSign = strategy.direction == Direction.buy ? 1.0 : -1.0;
+    final closePrice = strategy.direction == Direction.buy
+        ? currentPrice - (execution.spreadPoints / 2) * instrument.tickSize
+        : currentPrice + (execution.spreadPoints / 2) * instrument.tickSize;
+    
+    double existingEntryPrice;
+    if (existingTotalLots > 0 && instrument.contractSize > 0) {
+      existingEntryPrice = closePrice -
+          existingFloatingPnl / (directionSign * instrument.contractSize * existingTotalLots);
+    } else {
+      existingEntryPrice = currentPrice;
+    }
+
+    // Create synthetic Level 0
+    levels.add(GridLevel(
+      index: 0,
+      rawLot: existingTotalLots,
+      roundedLot: existingTotalLots,
+      entryPrice: existingEntryPrice,
+      cumulativeLot: existingTotalLots,
+      requiredMargin: 0, // Will be calculated by MarginCalculator
+      isTriggered: true,
+    ));
+
+    // Build remaining levels starting from Level 1
+    final futureLevels = build(
+      strategy: strategy,
+      instrument: instrument,
+      execution: execution,
+      currentPrice: currentPrice,
+      warnings: warnings,
+    );
+
+    // Adjust cumulative lots for future levels
+    double cumulativeLot = existingTotalLots;
+    for (final level in futureLevels) {
+      cumulativeLot += level.roundedLot;
+      levels.add(level.copyWith(cumulativeLot: cumulativeLot));
+    }
+
+    return levels;
+  }
+
   /// Integer power (avoids floating-point math.pow for small exponents).
   static double _pow(double base, int exponent) {
     double result = 1;

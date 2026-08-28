@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Guide — Grid Survival Simulator</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.7;
+            color: #1a1a2e;
+            background: #f8f9fa;
+        }
+        .header {
+            background: linear-gradient(135deg, #0D1B2A 0%, #1E3A5F 100%);
+            color: white;
+            padding: 48px 24px 40px;
+            text-align: center;
+        }
+        .header h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+        .header p { color: #94a3b8; font-size: 15px; }
+        .container { max-width: 720px; margin: 0 auto; padding: 32px 24px 80px; }
+        h2 {
+            font-size: 22px; font-weight: 700; color: #1E3A5F;
+            margin-top: 40px; margin-bottom: 16px;
+            padding-bottom: 8px; border-bottom: 2px solid #e5e7eb;
+        }
+        h3 { font-size: 17px; font-weight: 600; color: #374151; margin-top: 24px; margin-bottom: 8px; }
+        p { font-size: 15px; color: #4b5563; margin-bottom: 12px; }
+        ul, ol { padding-left: 24px; margin-bottom: 16px; }
+        li { font-size: 15px; color: #4b5563; margin-bottom: 6px; }
+        .step {
+            background: white; border-radius: 12px; padding: 24px;
+            margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        .step-num {
+            display: inline-block; background: #1E3A5F; color: white;
+            width: 32px; height: 32px; border-radius: 50%; text-align: center;
+            line-height: 32px; font-weight: 700; font-size: 14px; margin-right: 12px;
+        }
+        .step-title { font-size: 17px; font-weight: 600; color: #1a1a2e; display: inline; }
+        .tip {
+            background: #eff6ff; border-left: 4px solid #2563eb;
+            padding: 16px 20px; border-radius: 0 8px 8px 0; margin: 16px 0;
+        }
+        .tip strong { color: #1e40af; }
+        .warning {
+            background: #fef3c7; border-left: 4px solid #f59e0b;
+            padding: 16px 20px; border-radius: 0 8px 8px 0; margin: 16px 0;
+        }
+        .warning strong { color: #92400e; }
+        .field-table { width: 100%; border-collapse: collapse; margin: 12px 0 20px; }
+        .field-table th { background: #f1f5f9; padding: 10px 14px; text-align: left; font-size: 13px; font-weight: 600; color: #475569; }
+        .field-table td { padding: 10px 14px; border-bottom: 1px solid #e5e7eb; font-size: 14px; color: #374151; }
+        .field-table tr:last-child td { border-bottom: none; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 13px; color: #be185d; }
+        .toc { background: white; border-radius: 12px; padding: 24px; margin-bottom: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+        .toc h3 { margin-top: 0; color: #1E3A5F; }
+        .toc ol { margin-bottom: 0; }
+        .toc a { color: #2563eb; text-decoration: none; }
+        .toc a:hover { text-decoration: underline; }
+        .disclaimer { background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 16px; margin-top: 32px; }
+        .disclaimer p { color: #991b1b; font-size: 13px; margin: 0; }
+        footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #e5e7eb; color: #9ca3af; font-size: 13px; text-align: center; }
+        a { color: #2563eb; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📊 Grid Survival Simulator</h1>
+        <p>User Guide — How to stress-test your Grid/Martingale strategy</p>
+    </div>
+
+    <div class="container">
+
+        <!-- Table of Contents -->
+        <div class="toc">
+            <h3>📑 Contents</h3>
+            <ol>
+                <li><a href="#overview">What is Grid Survival Simulator?</a></li>
+                <li><a href="#getting-started">Getting Started</a></li>
+                <li><a href="#quick-calculator">Quick Calculator (Home)</a></li>
+                <li><a href="#dashboard">Risk Dashboard</a></li>
+                <li><a href="#price-ladder">Price Ladder (Chart)</a></li>
+                <li><a href="#what-if">What-If Slider</a></li>
+                <li><a href="#reverse">Reverse Mode (Find Max Lot)</a></li>
+                <li><a href="#save-load">Save & Load Strategies</a></li>
+                <li><a href="#share">Share as Image</a></li>
+                <li><a href="#faq">FAQ</a></li>
+            </ol>
+        </div>
+
+        <!-- 1. Overview -->
+        <h2 id="overview">1. What is Grid Survival Simulator?</h2>
+        <p>Grid Survival Simulator is an <strong>offline</strong> risk analysis tool for Forex & Gold traders who use <strong>Grid</strong> or <strong>Martingale</strong> strategies.</p>
+        <p>Before you risk real money, this app shows you:</p>
+        <ul>
+            <li>How many grid levels your account can survive</li>
+            <li>When your account will hit stop-out</li>
+            <li>What's your worst-case drawdown</li>
+            <li>Where your basket breaks even</li>
+        </ul>
+        <div class="tip">
+            <strong>💡 100% Offline:</strong> Your data never leaves your device. No internet required. No login needed.
+        </div>
+
+        <!-- 2. Getting Started -->
+        <h2 id="getting-started">2. Getting Started</h2>
+        <div class="step">
+            <span class="step-num">1</span>
+            <span class="step-title">Open the app</span>
+            <p style="margin-top:12px">You'll see the <strong>Quick Calculator</strong> screen. This is where you enter your strategy parameters.</p>
+        </div>
+        <div class="step">
+            <span class="step-num">2</span>
+            <span class="step-title">Fill in your parameters</span>
+            <p style="margin-top:12px">Enter your account balance, leverage, lot size, multiplier, and grid distance. See section 3 for details.</p>
+        </div>
+        <div class="step">
+            <span class="step-num">3</span>
+            <span class="step-title">Tap Calculate</span>
+            <p style="margin-top:12px">The app will show your <strong>Risk Dashboard</strong> with all key metrics.</p>
+        </div>
+
+        <!-- 3. Quick Calculator -->
+        <h2 id="quick-calculator">3. Quick Calculator (Home Screen)</h2>
+        <p>This is the main input screen. Fill in all fields:</p>
+        <table class="field-table">
+            <tr><th>Field</th><th>Description</th><th>Example</th></tr>
+            <tr><td><strong>Symbol</strong></td><td>The instrument you're trading</td><td>XAUUSD, EURUSD</td></tr>
+            <tr><td><strong>Direction</strong></td><td>Buy or Sell</td><td>Buy</td></tr>
+            <tr><td><strong>Balance</strong></td><td>Your account balance in USD</td><td>1000</td></tr>
+            <tr><td><strong>Leverage</strong></td><td>Your account leverage</td><td>1:100</td></tr>
+            <tr><td><strong>Stop-out %</strong></td><td>Broker's stop-out level</td><td>50</td></tr>
+            <tr><td><strong>Initial Lot</strong></td><td>Starting lot size</td><td>0.01</td></tr>
+            <tr><td><strong>Multiplier</strong></td><td>Lot multiplier per level</td><td>1.5</td></tr>
+            <tr><td><strong>Distance</strong></td><td>Grid distance in pips</td><td>100</td></tr>
+            <tr><td><strong>Levels</strong></td><td>Number of grid levels</td><td>10</td></tr>
+            <tr><td><strong>Current Price</strong></td><td>Current market price</td><td>2350.00</td></tr>
+        </table>
+
+        <h3>Advanced Settings (Optional)</h3>
+        <p>Tap "Advanced" to expand:</p>
+        <table class="field-table">
+            <tr><th>Field</th><th>Description</th><th>Default</th></tr>
+            <tr><td><strong>Spread</strong></td><td>Spread in pips</td><td>30</td></tr>
+            <tr><td><strong>Commission</strong></td><td>Commission per lot in USD</td><td>0</td></tr>
+            <tr><td><strong>Swap (Long/Short)</strong></td><td>Overnight swap fee per lot</td><td>0</td></tr>
+            <tr><td><strong>Holding Days</strong></td><td>Estimated holding period</td><td>0</td></tr>
+        </table>
+
+        <h3>Risk Constraints (Optional)</h3>
+        <table class="field-table">
+            <tr><th>Field</th><th>Description</th></tr>
+            <tr><td><strong>Max Drawdown %</strong></td><td>Maximum acceptable drawdown</td></tr>
+            <tr><td><strong>Max Total Lot</strong></td><td>Maximum total exposure in lots</td></tr>
+            <tr><td><strong>Min Margin Level %</strong></td><td>Minimum margin level before warning</td></tr>
+            <tr><td><strong>Max Loss $</strong></td><td>Maximum dollar loss you'll accept</td></tr>
+        </table>
+
+        <!-- 4. Dashboard -->
+        <h2 id="dashboard">4. Risk Dashboard</h2>
+        <p>After tapping Calculate, you'll see the Dashboard with key metrics:</p>
+        <table class="field-table">
+            <tr><th>Metric</th><th>What it means</th></tr>
+            <tr><td><strong>Survivable Levels</strong></td><td>How many grid levels your account can handle before stop-out. E.g., "7/10" means 7 out of 10 levels are safe.</td></tr>
+            <tr><td><strong>Max Drawdown %</strong></td><td>Worst-case drawdown if all levels trigger.</td></tr>
+            <tr><td><strong>Stop-out Price</strong></td><td>The price at which your account gets margin-called.</td></tr>
+            <tr><td><strong>Basket Breakeven</strong></td><td>The price where your entire grid breaks even.</td></tr>
+            <tr><td><strong>Rebind Distance</strong></td><td>How far price needs to move back to recover.</td></tr>
+            <tr><td><strong>Total Exposure</strong></td><td>Total lots across all triggered levels.</td></tr>
+            <tr><td><strong>Constraint Check</strong></td><td>PASS/FAIL for each risk constraint you set.</td></tr>
+        </table>
+
+        <div class="warning">
+            <strong>⚠️ Pre-flight Warning:</strong> If you see a red banner, your strategy violates one or more risk constraints. Adjust your parameters before going live!
+        </div>
+
+        <p>Scroll down to see the <strong>Grid Levels Table</strong> showing each level's lot, entry price, cumulative lot, and margin required.</p>
+
+        <!-- 5. Price Ladder -->
+        <h2 id="price-ladder">5. Price Ladder (Interactive Chart)</h2>
+        <p>Tap <strong>"Price Ladder"</strong> on the Dashboard to see a visual chart:</p>
+        <ul>
+            <li><strong>Green line</strong> — Average entry price</li>
+            <li><strong>Orange line</strong> — Basket breakeven price</li>
+            <li><strong>Red dotted line</strong> — Stop-out price (if calculated)</li>
+            <li><strong>Blue dots</strong> — Individual grid levels</li>
+        </ul>
+        <p><strong>Tap any level</strong> on the chart to see its details (lot size, entry price, margin).</p>
+
+        <!-- 6. What-If -->
+        <h2 id="what-if">6. What-If Slider</h2>
+        <p>Tap <strong>"What-If"</strong> to simulate different price scenarios:</p>
+        <ul>
+            <li><strong>Drag the slider</strong> left or right to change the hypothetical price</li>
+            <li>See in real-time how many levels trigger at that price</li>
+            <li>Check your drawdown, margin level, and floating P/L</li>
+        </ul>
+        <div class="tip">
+            <strong>💡 Tip:</strong> Use this to answer "What happens if gold drops 500 pips?" or "What if EURUSD rallies 200 pips?"
+        </div>
+
+        <!-- 7. Reverse Mode -->
+        <h2 id="reverse">7. Reverse Mode (Find Max Lot)</h2>
+        <p>Instead of testing a fixed lot, let the app find the <strong>maximum safe lot size</strong> for you:</p>
+        <ol>
+            <li>Go to <strong>Reverse Mode</strong> from the Dashboard</li>
+            <li>Enter your risk constraints (Max DD%, Min Margin Level%, Max Lot, Max Loss)</li>
+            <li>Tap <strong>"Calculate"</strong></li>
+            <li>The app uses binary search to find the largest initial lot that satisfies ALL constraints</li>
+        </ol>
+        <div class="tip">
+            <strong>💡 Tip:</strong> The result shows which constraint is the "bottleneck" — the one limiting your lot size the most.
+        </div>
+
+        <!-- 8. Save & Load -->
+        <h2 id="save-load">8. Save & Load Strategies</h2>
+        <p>Save your strategy configurations for later:</p>
+        <ul>
+            <li><strong>Save:</strong> Tap the save icon on the Dashboard → enter a name → Done</li>
+            <li><strong>Load:</strong> Go to "Saved Strategies" → tap any saved strategy</li>
+            <li><strong>Delete:</strong> Long-press or tap the delete icon → confirm</li>
+        </ul>
+        <div class="warning">
+            <strong>📝 Note:</strong> You can save up to <strong>5 strategies</strong> in the current version. All data is stored locally on your device.
+        </div>
+
+        <!-- 9. Share -->
+        <h2 id="share">9. Share as Image</h2>
+        <p>Generate a summary card and share it:</p>
+        <ol>
+            <li>Tap <strong>"Share"</strong> on the Dashboard</li>
+            <li>Review the generated image card</li>
+            <li>Tap <strong>"Share"</strong> to send via WhatsApp, Telegram, Zalo, etc.</li>
+        </ol>
+        <p>The image includes: Symbol, Direction, Lot, Multiplier, Levels, Distance, Survivable Levels, Max DD, Breakeven, Stop-out, and Exposure.</p>
+
+        <!-- 10. FAQ -->
+        <h2 id="faq">10. Frequently Asked Questions</h2>
+
+        <h3>Q: Does this app trade for me?</h3>
+        <p><strong>No.</strong> This is a calculation/analysis tool only. It does not connect to any broker or execute trades.</p>
+
+        <h3>Q: Is this financial advice?</h3>
+        <p><strong>No.</strong> This app is for educational and analytical purposes only. All trading decisions are your own responsibility.</p>
+
+        <h3>Q: Why are my saved strategies gone?</h3>
+        <p>Saved strategies are stored locally. If you uninstall the app, all data is lost. Make sure to save important strategies and share them as images for backup.</p>
+
+        <h3>Q: Can I use this for crypto or stocks?</h3>
+        <p>The app currently supports XAUUSD (Gold) and EURUSD. More instruments will be added in future updates.</p>
+
+        <h3>Q: The numbers don't match my MT4/MT5. Why?</h3>
+        <p>Different brokers have different:</p>
+        <ul>
+            <li>Spread values</li>
+            <li>Commission structures</li>
+            <li>Swap rates</li>
+            <li>Stop-out level calculations</li>
+        </ul>
+        <p>Use the <strong>Advanced Settings</strong> to input your broker's exact values for more accurate results.</p>
+
+        <h3>Q: Is my data safe?</h3>
+        <p><strong>Yes.</strong> All data stays on your device. The app works 100% offline. No data is sent to any server.</p>
+
+        <div class="disclaimer">
+            <p><strong>⚠️ Disclaimer:</strong> This app is for educational and analytical purposes only. It does not provide financial advice. Trading forex and commodities involves significant risk. Past performance does not guarantee future results. Always do your own research before making trading decisions.</p>
+        </div>
+
+        <footer>
+            <p>© 2026 Grid Survival Simulator · <a href="/privacy.html">Privacy Policy</a> · Made with ❤️ by traders, for traders</p>
+        </footer>
+    </div>
+</body>
+</html>

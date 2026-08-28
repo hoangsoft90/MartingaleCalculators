@@ -116,4 +116,51 @@ class PnlCalculator {
   }) {
     return (basketBreakevenPrice - currentPrice).abs();
   }
+
+  /// Calculate price for a target P/L.
+  ///
+  /// Solves the linear equation for P/L:
+  ///   targetPnl = (closePrice - avgEntry) * direction * contractSize * totalLot - costs
+  ///
+  /// Returns the price at which the basket achieves [targetPnl].
+  /// When targetPnl == 0, this equals calculateBasketBreakeven.
+  static double priceForTargetPnl({
+    required List<GridLevel> levels,
+    required double targetPnl,
+    required Direction direction,
+    required InstrumentSpec instrument,
+    required ExecutionSpec execution,
+  }) {
+    double totalCost = 0;
+    double totalWeightedEntry = 0;
+    double totalLot = 0;
+
+    for (final level in levels) {
+      if (!level.isTriggered) continue;
+      totalWeightedEntry += level.roundedLot * level.entryPrice;
+      totalLot += level.roundedLot;
+      totalCost += execution.commissionPerLot * level.roundedLot;
+      totalCost +=
+          execution.swapPerLotPerDay * level.roundedLot * execution.holdingDays;
+    }
+
+    if (totalLot == 0) return 0;
+
+    final avgEntry = totalWeightedEntry / totalLot;
+    final directionSign = direction == Direction.buy ? 1.0 : -1.0;
+
+    // targetPnl = (closePrice - avgEntry) * direction * contractSize * totalLot - costs
+    // closePrice = avgEntry + (targetPnl + costs) / (direction * contractSize * totalLot)
+    final closePrice = avgEntry +
+        (targetPnl + totalCost) / (directionSign * instrument.contractSize * totalLot);
+
+    // Convert close price to mid price (reverse the spread application)
+    final halfSpread = (execution.spreadPoints / 2) * instrument.tickSize;
+    switch (direction) {
+      case Direction.buy:
+        return closePrice + halfSpread; // Buy closes at Bid, so mid = Bid + spread/2
+      case Direction.sell:
+        return closePrice - halfSpread; // Sell closes at Ask, so mid = Ask - spread/2
+    }
+  }
 }

@@ -13,6 +13,10 @@ import 'screens/what_if/what_if_screen.dart';
 import 'screens/reverse_mode/reverse_mode_screen.dart';
 import 'screens/share/share_screen.dart';
 import 'screens/saved_strategies/saved_strategies_screen.dart';
+import 'screens/about/about_screen.dart';
+import 'screens/risk_budget/risk_budget_screen.dart';
+import 'screens/max_levels/max_levels_screen.dart';
+import 'screens/gap_scenario/gap_scenario_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -119,6 +123,10 @@ class GridSurvivalApp extends StatelessWidget {
         '/reverse': (context) => const ReverseModeScreen(),
         '/share': (context) => const ShareScreen(),
         '/saved': (context) => const SavedStrategiesScreen(),
+        '/about': (context) => const AboutScreen(),
+        '/risk-budget': (context) => const RiskBudgetScreen(),
+        '/max-levels': (context) => const MaxLevelsScreen(),
+        '/gap-scenario': (context) => const GapScenarioScreen(),
       },
 
       // Handle unknown routes

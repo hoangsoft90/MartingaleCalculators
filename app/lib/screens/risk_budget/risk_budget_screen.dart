@@ -4,47 +4,22 @@ import 'package:grid_engine/grid_engine.dart';
 import '../../state/strategy_provider.dart';
 import '../../widgets/safe_scaffold.dart';
 
-class ReverseModeScreen extends ConsumerStatefulWidget {
-  const ReverseModeScreen({super.key});
+class RiskBudgetScreen extends ConsumerStatefulWidget {
+  const RiskBudgetScreen({super.key});
 
   @override
-  ConsumerState<ReverseModeScreen> createState() => _ReverseModeScreenState();
+  ConsumerState<RiskBudgetScreen> createState() => _RiskBudgetScreenState();
 }
 
-class _ReverseModeScreenState extends ConsumerState<ReverseModeScreen> {
+class _RiskBudgetScreenState extends ConsumerState<RiskBudgetScreen> {
   final _formKey = GlobalKey<FormState>();
-  late TextEditingController _maxDdController;
-  late TextEditingController _minMarginController;
-  late TextEditingController _maxLotController;
-  late TextEditingController _maxLossController;
-  
+  final _maxLossController = TextEditingController();
   ReverseResult? _result;
   bool _hasError = false;
   String _errorMessage = '';
 
   @override
-  void initState() {
-    super.initState();
-    final constraints = ref.read(constraintSetProvider);
-    _maxDdController = TextEditingController(
-      text: constraints.maxDrawdownPercent?.toString() ?? '',
-    );
-    _minMarginController = TextEditingController(
-      text: constraints.minMarginLevelPercent?.toString() ?? '',
-    );
-    _maxLotController = TextEditingController(
-      text: constraints.maxTotalLot?.toString() ?? '',
-    );
-    _maxLossController = TextEditingController(
-      text: constraints.maxLossAmount?.toString() ?? '',
-    );
-  }
-
-  @override
   void dispose() {
-    _maxDdController.dispose();
-    _minMarginController.dispose();
-    _maxLotController.dispose();
     _maxLossController.dispose();
     super.dispose();
   }
@@ -52,20 +27,16 @@ class _ReverseModeScreenState extends ConsumerState<ReverseModeScreen> {
   void _solve() {
     if (!_formKey.currentState!.validate()) return;
 
-    final constraints = ConstraintSet(
-      maxDrawdownPercent: double.tryParse(_maxDdController.text),
-      maxTotalLot: double.tryParse(_maxLotController.text),
-      minMarginLevelPercent: double.tryParse(_minMarginController.text),
-      maxLossAmount: double.tryParse(_maxLossController.text),
-    );
-
-    if (!constraints.hasAny) {
+    final maxLoss = double.tryParse(_maxLossController.text);
+    if (maxLoss == null || maxLoss <= 0) {
       setState(() {
         _hasError = true;
-        _errorMessage = 'Please enter at least one constraint.';
+        _errorMessage = 'Please enter a valid Max Loss amount.';
       });
       return;
     }
+
+    final constraints = ConstraintSet(maxLossAmount: maxLoss);
 
     try {
       final result = ReverseSolver.solve(
@@ -94,7 +65,7 @@ class _ReverseModeScreenState extends ConsumerState<ReverseModeScreen> {
     final strategy = ref.watch(strategySpecProvider);
 
     return SafeScaffold(
-      title: 'Reverse Mode',
+      title: 'Risk Budget',
       showBannerAd: false,
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -108,16 +79,17 @@ class _ReverseModeScreenState extends ConsumerState<ReverseModeScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'How it works',
+                    'Risk Budget',
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Enter at least one risk constraint. The solver will find the '
-                    'Maximum Initial Lot that satisfies all constraints for your '
-                    '${strategy.levels}-level ${instrument.symbol} grid.',
+                    'Enter the maximum dollar amount you\'re willing to lose. '
+                    'The solver will find the largest Initial Lot that keeps '
+                    'your loss within this budget for a ${strategy.levels}-level '
+                    '${instrument.symbol} grid.',
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ],
@@ -126,74 +98,17 @@ class _ReverseModeScreenState extends ConsumerState<ReverseModeScreen> {
           ),
           const SizedBox(height: 16),
 
-          // Current config display
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Current Configuration',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text('Symbol: ${instrument.symbol}'),
-                  Text('Direction: ${strategy.direction.name.toUpperCase()}'),
-                  Text('Multiplier: ${strategy.multiplier}'),
-                  Text('Distance: ${strategy.fixedDistance}'),
-                  Text('Levels: ${strategy.levels}'),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Constraint inputs
+          // Max Loss input
           Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Risk Constraints (at least 1 required)',
+                  'Maximum Loss (\$)',
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _maxDdController,
-                  decoration: const InputDecoration(
-                    labelText: 'Max Drawdown %',
-                    border: OutlineInputBorder(),
-                    suffixText: '%',
-                    hintText: 'e.g., 30',
-                  ),
-                  keyboardType: TextInputType.number,
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _minMarginController,
-                  decoration: const InputDecoration(
-                    labelText: 'Min Margin Level %',
-                    border: OutlineInputBorder(),
-                    suffixText: '%',
-                    hintText: 'e.g., 100',
-                  ),
-                  keyboardType: TextInputType.number,
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _maxLotController,
-                  decoration: const InputDecoration(
-                    labelText: 'Max Total Lot',
-                    border: OutlineInputBorder(),
-                    hintText: 'e.g., 1.0',
-                  ),
-                  keyboardType: TextInputType.number,
                 ),
                 const SizedBox(height: 8),
                 TextFormField(
@@ -205,6 +120,7 @@ class _ReverseModeScreenState extends ConsumerState<ReverseModeScreen> {
                     hintText: 'e.g., 500',
                   ),
                   keyboardType: TextInputType.number,
+                  autofocus: true,
                 ),
               ],
             ),
@@ -284,22 +200,6 @@ class _ReverseModeScreenState extends ConsumerState<ReverseModeScreen> {
                   subtitle: Text(_result!.bottleneckConstraint!.detailMessage),
                 ),
               ),
-
-            // All results
-            ExpansionTile(
-              title: const Text('All Constraint Results'),
-              children: _result!.allResults
-                  .map((cr) => ListTile(
-                        leading: Icon(
-                          cr.passed ? Icons.check_circle : Icons.cancel,
-                          color: cr.passed ? Colors.green : Colors.red,
-                        ),
-                        title: Text(cr.constraintName),
-                        subtitle: Text(cr.detailMessage),
-                        dense: true,
-                      ))
-                  .toList(),
-            ),
           ],
 
           const SizedBox(height: 16),

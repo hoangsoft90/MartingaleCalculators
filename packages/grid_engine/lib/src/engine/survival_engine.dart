@@ -3,6 +3,10 @@ import '../models/strategy_spec.dart';
 import '../models/instrument_spec.dart';
 import '../models/execution_spec.dart';
 import '../models/grid_level.dart';
+import '../models/constraint_set.dart';
+import 'grid_builder.dart';
+import 'margin_calculator.dart';
+import 'constraint_evaluator.dart';
 
 /// Deterministic survival analysis.
 ///
@@ -113,6 +117,98 @@ class SurvivalEngine {
     );
   }
 
+  /// Find maximum number of survivable levels.
+  ///
+  /// Runs the engine incrementally, stopping at the first level where
+  /// any constraint fails or stop-out is reached.
+  ///
+  /// [upperBound] prevents infinite loops — returns with reachedUpperBound=true
+  /// if all levels survive up to this limit.
+  static MaxLevelsResult maxSurvivableLevels({
+    required StrategySpec strategy,
+    required AccountSpec account,
+    required InstrumentSpec instrument,
+    required ExecutionSpec execution,
+    required ConstraintSet constraints,
+    double currentPrice = 3300.0,
+    int upperBound = 50,
+  }) {
+    int maxSurvived = 0;
+    String? failedConstraint;
+
+    for (int n = 1; n <= upperBound; n++) {
+      // Build grid with n levels
+      final testStrategy = strategy.copyWith(levels: n);
+      final levels = GridBuilder.build(
+        strategy: testStrategy,
+        instrument: instrument,
+        execution: execution,
+        currentPrice: currentPrice,
+      );
+
+      MarginCalculator.calculate(
+        levels: levels,
+        account: account,
+        instrument: instrument,
+        execution: execution,
+      );
+
+      // Check survival
+      final survival = analyze(
+        levels: levels,
+        account: account,
+        strategy: testStrategy,
+        instrument: instrument,
+        execution: execution,
+      );
+
+      if (survival.survivableLevels < n) {
+        failedConstraint = 'Stop-out reached';
+        break;
+      }
+
+      // Check constraints
+      double totalMargin = 0;
+      double totalLot = 0;
+      for (final level in levels) {
+        totalMargin += level.requiredMargin;
+        totalLot += level.roundedLot;
+      }
+
+      final constraintResults = ConstraintEvaluator.evaluate(
+        constraints: constraints,
+        account: account,
+        levels: levels,
+        maxDrawdownPercent: 0,
+        totalExposureLots: totalLot,
+        totalRequiredMargin: totalMargin,
+        totalFloatingPnl: 0,
+      );
+
+      final firstViolation = constraintResults.firstWhere(
+        (r) => !r.passed,
+        orElse: () => const ConstraintCheckResult(
+          constraintName: '',
+          passed: true,
+          detailMessage: '',
+        ),
+      );
+
+      if (!firstViolation.passed) {
+        failedConstraint = firstViolation.constraintName;
+        break;
+      }
+
+      maxSurvived = n;
+    }
+
+    return MaxLevelsResult(
+      maxLevels: maxSurvived,
+      reachedUpperBound: maxSurvived == upperBound,
+      failedConstraint: failedConstraint,
+    );
+  }
+
   /// Interpolate stop-out price between two levels.
   static double _interpolateStopOutPrice(
     double prevMarginLevel,
@@ -154,5 +250,23 @@ class SurvivalResult {
   const SurvivalResult({
     required this.survivableLevels,
     this.estimatedStopOutPrice,
+  });
+}
+
+/// Result of max levels analysis.
+class MaxLevelsResult {
+  /// Maximum number of levels that survive all constraints.
+  final int maxLevels;
+
+  /// Whether the upper bound was reached (may need more levels).
+  final bool reachedUpperBound;
+
+  /// The constraint that failed at the first non-survivable level.
+  final String? failedConstraint;
+
+  const MaxLevelsResult({
+    required this.maxLevels,
+    this.reachedUpperBound = false,
+    this.failedConstraint,
   });
 }

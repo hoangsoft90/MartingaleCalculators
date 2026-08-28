@@ -38,12 +38,14 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
     if (result == null) {
       return const SafeScaffold(
         title: 'Share Results',
+        showBannerAd: false,
         body: Center(child: Text('No data to share')),
       );
     }
 
     return SafeScaffold(
       title: 'Share Results',
+      showBannerAd: false,
       actions: [
         IconButton(
           icon: const Icon(Icons.share),

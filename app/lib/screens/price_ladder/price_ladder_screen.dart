@@ -24,12 +24,14 @@ class _PriceLadderScreenState extends ConsumerState<PriceLadderScreen> {
     if (result == null || result.levels.isEmpty) {
       return const SafeScaffold(
         title: 'Price Ladder',
+        showBannerAd: false,
         body: Center(child: Text('No data available')),
       );
     }
 
     return SafeScaffold(
       title: 'Price Ladder',
+      showBannerAd: false,
       body: Column(
         children: [
           // Legend

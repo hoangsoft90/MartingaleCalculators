@@ -8,6 +8,12 @@ import '../reverse_mode/reverse_mode_screen.dart';
 import '../share/share_screen.dart';
 import '../saved_strategies/saved_strategies_screen.dart';
 import '../quick_calculator/quick_calculator_screen.dart';
+import '../about/about_screen.dart';
+import '../../widgets/failure_explanation_panel.dart';
+import '../../widgets/basket_tp_table.dart';
+import '../risk_budget/risk_budget_screen.dart';
+import '../max_levels/max_levels_screen.dart';
+import '../gap_scenario/gap_scenario_screen.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -19,6 +25,7 @@ class DashboardScreen extends ConsumerWidget {
     if (result == null) {
       return const SafeScaffold(
         title: 'Risk Dashboard',
+        showBannerAd: false,
         body: Center(child: CircularProgressIndicator()),
       );
     }
@@ -28,7 +35,15 @@ class DashboardScreen extends ConsumerWidget {
 
     return SafeScaffold(
       title: 'Risk Dashboard',
+      showBannerAd: false,
       actions: [
+        IconButton(
+          icon: const Icon(Icons.info_outline),
+          tooltip: 'About',
+          onPressed: () {
+            AppNavigation.push(context, const AboutScreen());
+          },
+        ),
         // Edit button - go back to calculator
         IconButton(
           icon: const Icon(Icons.edit),
@@ -41,28 +56,27 @@ class DashboardScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Pre-flight warnings banner
+          // Failure/Bottleneck explanation
           if (result.constraintResults.any((r) => !r.passed))
-            Container(
-              padding: const EdgeInsets.all(12),
-              margin: const EdgeInsets.only(bottom: 16),
-              decoration: BoxDecoration(
-                color: Colors.red.shade50,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.red.shade200),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.warning_amber, color: Colors.red.shade700),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Some constraints are violated. Review results below.',
-                      style: TextStyle(color: Colors.red.shade700),
-                    ),
-                  ),
-                ],
-              ),
+            Builder(
+              builder: (context) {
+                final violation = ConstraintEvaluator.findFirstViolation(
+                  constraints: ref.read(constraintSetProvider),
+                  account: ref.read(accountSpecProvider),
+                  levels: result.levels,
+                  maxDrawdownPercent: result.maxDrawdownPercent,
+                  totalExposureLots: result.totalExposureLots,
+                  totalRequiredMargin: result.totalExposureLots * 100, // Simplified
+                  totalFloatingPnl: 0,
+                );
+                if (violation != null) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: FailureExplanationPanel(violation: violation),
+                  );
+                }
+                return const SizedBox.shrink();
+              },
             ),
 
           // 5 Key Metrics
@@ -140,6 +154,15 @@ class DashboardScreen extends ConsumerWidget {
             const Divider(),
           ],
 
+          // Basket TP Table
+          BasketTpTable(
+            levels: result.levels,
+            direction: strategy.direction,
+            instrument: instrument,
+            execution: ref.read(executionSpecProvider),
+          ),
+          const SizedBox(height: 16),
+
           // Assumptions Panel
           ExpansionTile(
             title: const Text('Assumptions Used'),
@@ -206,11 +229,44 @@ class DashboardScreen extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 8),
-          _NavButton(
-            icon: Icons.bookmark,
-            label: 'Saved Strategies',
-            onTap: () => AppNavigation.push(context, const SavedStrategiesScreen()),
-            fullWidth: true,
+          Row(
+            children: [
+              Expanded(
+                child: _NavButton(
+                  icon: Icons.savings,
+                  label: 'Risk Budget',
+                  onTap: () => AppNavigation.push(context, const RiskBudgetScreen()),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _NavButton(
+                  icon: Icons.layers_clear,
+                  label: 'Max Levels',
+                  onTap: () => AppNavigation.push(context, const MaxLevelsScreen()),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: _NavButton(
+                  icon: Icons.swap_vert,
+                  label: 'Gap Scenario',
+                  onTap: () => AppNavigation.push(context, const GapScenarioScreen()),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _NavButton(
+                  icon: Icons.bookmark,
+                  label: 'Saved Strategies',
+                  onTap: () => AppNavigation.push(context, const SavedStrategiesScreen()),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 24),
 

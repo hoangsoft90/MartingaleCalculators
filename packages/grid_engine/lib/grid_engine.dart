@@ -11,6 +11,7 @@ export 'src/models/execution_spec.dart';
 export 'src/models/strategy_spec.dart';
 export 'src/models/grid_level.dart';
 export 'src/models/constraint_set.dart';
+export 'src/models/leverage_tier.dart';
 export 'src/models/calculation_result.dart';
 
 // Engine
